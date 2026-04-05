@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PulseChain Intelligence Dashboard</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>" />
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
@@ -151,6 +152,53 @@
           <span class="label">Projets détectés</span>
           <span id="eco-projects" class="value">--</span>
         </div>
+      </div>
+
+      <!-- Index d'Accumulation des Baleines -->
+      <div class="card" id="card-whale-accumulation">
+        <div class="card-title">🐋 Index d'Accumulation des Baleines</div>
+        <div class="metric-big" id="whale-index">--</div>
+        <div class="metric-row">
+          <span class="label">Total Achats Baleines</span>
+          <span id="whale-buys" class="value">--</span>
+        </div>
+        <div class="metric-row">
+          <span class="label">Total Ventes Baleines</span>
+          <span id="whale-sells" class="value">--</span>
+        </div>
+        <div class="metric-row">
+          <span class="label">Signal Marché</span>
+          <span id="whale-signal" class="value">--</span>
+        </div>
+      </div>
+
+      <!-- Probabilité de Pump -->
+      <div class="card" id="card-pump-probability">
+        <div class="card-title">⚡ Probabilité de Pump</div>
+        <div class="metric-big" id="pump-ratio">--</div>
+        <div class="metric-row">
+          <span class="label">Volume 24h</span>
+          <span id="pump-volume" class="value">--</span>
+        </div>
+        <div class="metric-row">
+          <span class="label">Liquidité (TVL)</span>
+          <span id="pump-liquidity" class="value">--</span>
+        </div>
+        <div class="metric-row">
+          <span class="label">Signal</span>
+          <span id="pump-signal" class="value">--</span>
+        </div>
+      </div>
+
+      <!-- Score d'Intelligence Marché -->
+      <div class="card" id="card-market-intelligence">
+        <div class="card-title">🧠 Score d'Intelligence Marché</div>
+        <div class="metric-big" id="intelligence-score">--</div>
+        <div class="metric-row">
+          <span class="label">Statut</span>
+          <span id="intelligence-status" class="value">--</span>
+        </div>
+        <div class="score-details" id="intelligence-details" style="margin-top: 12px;"></div>
       </div>
 
     </div>

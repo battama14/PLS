@@ -293,6 +293,25 @@ canvas { margin-top: 14px; }
 .notif.whale { border-left-color: var(--accent2); }
 .notif.burn { border-left-color: var(--red); }
 .notif.spike { border-left-color: var(--yellow); }
+.notif.pump { border-left-color: var(--green); background: rgba(16, 185, 129, 0.1); }
+
+/* PUMP ALERT ANIMATION */
+.pump-alert {
+  animation: pumpPulse 2s infinite;
+  border-color: var(--green) !important;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+}
+
+@keyframes pumpPulse {
+  0%, 100% { 
+    border-color: var(--green);
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+  }
+  50% { 
+    border-color: var(--accent);
+    box-shadow: 0 0 30px rgba(0, 212, 255, 0.5);
+  }
+}
 
 @keyframes slideIn {
   from { transform: translateX(100%); opacity: 0; }
