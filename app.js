@@ -84,15 +84,14 @@ function notify(msg, type = 'info') {
 // ─── 1. PRIX — CoinGecko avec gestion rate limit ────────────────────────────────
 async function fetchPrices() {
   try {
-    // Ajouter un délai pour éviter le rate limit
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Réduire le délai pour accélérer
+    await new Promise(resolve => setTimeout(resolve, 300));
     
     // CoinGecko fonctionne parfaitement
     const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=pulsechain,pulsex&vs_currencies=usd&include_24hr_change=true&include_7d_change=true&include_market_cap=true&include_24hr_vol=true');
     
     if (!res.ok) {
       console.warn('CoinGecko rate limit, using fallback data');
-      // Utiliser les dernières données connues ou des valeurs par défaut
       return;
     }
     
@@ -111,11 +110,6 @@ async function fetchPrices() {
       state.plsxPrice = d.pulsex.usd ?? null;
       state.plsxChange24h = d.pulsex.usd_24h_change ?? null;
     }
-    
-    // Debug pour voir pourquoi certaines données manquent
-    console.log('PLS Price:', state.plsPrice);
-    console.log('PLS 7d change:', state.plsChange7d);
-    console.log('PLS Market Cap:', state.plsMcap);
     
   } catch (e) { console.warn('CoinGecko error:', e.message); }
 }
@@ -859,36 +853,29 @@ async function refreshAll() {
   console.log('🔄 Début de la mise à jour...');
   
   try {
-    // SÉQUENCE OPTIMISÉE - Un appel à la fois pour éviter les conflits
+    // CHARGEMENT RAPIDE - Grouper les appels compatibles
     
-    // 1. Prix de base (priorité 1)
-    console.log('📊 Récupération prix...');
-    await fetchPrices();
-    await new Promise(resolve => setTimeout(resolve, 500)); // Délai entre appels
+    // Groupe 1: APIs rapides en parallèle
+    console.log('📊 Récupération données principales...');
+    await Promise.all([
+      fetchPrices(),
+      fetchNetwork(),
+      fetchBurn()
+    ]);
     
-    // 2. Données réseau (priorité 2)
-    console.log('🌐 Récupération réseau...');
-    await fetchNetwork();
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Petit délai pour éviter le rate limit
+    await new Promise(resolve => setTimeout(resolve, 200));
     
-    // 3. Burn PLSX (priorité 3)
-    console.log('🔥 Récupération burn...');
-    await fetchBurn();
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Groupe 2: APIs plus lentes en parallèle
+    console.log('🌐 Récupération données secondaires...');
+    await Promise.all([
+      fetchWhales(),
+      fetchEcosystem()
+    ]);
     
-    // 4. Baleines (priorité 4)
-    console.log('🐋 Récupération baleines...');
-    await fetchWhales();
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    // 5. Écosystème (priorité 5 - peut corriger les prix)
-    console.log('🌱 Récupération écosystème...');
-    await fetchEcosystem();
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    // 6. Historique prix (priorité 6 - optionnel)
+    // Groupe 3: Historique optionnel (peut être lent)
     console.log('📈 Récupération historique...');
-    await fetchPriceHistory();
+    fetchPriceHistory().catch(e => console.warn('Price history failed:', e.message));
     
     console.log('✅ Toutes les données récupérées');
     
@@ -919,7 +906,7 @@ async function refreshAll() {
     btn.innerHTML = '↻ Actualiser';
   }
   
-  console.log('✅ Mise à jour terminée avec succès');
+  console.log('✅ Mise à jour terminée rapidement');
 }
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
