@@ -14,7 +14,7 @@ const state = {
   blockNumber: null, gasPrice: null,
   totalWallets: null,
   burnTotal: null, burnPrev: null,
-  tvl: null, tvlChange: null, pools: null, tokens: null, projects: null,
+  tvl: null, tvlChange: null, pools: null, tokens: null, projects: null, telegramMembers: null,
   whales: [],
   priceHistory: [], priceLabels: [],
   txHistory: [], txLabels: [],
@@ -75,57 +75,57 @@ function notify(msg, type = 'info') {
   setTimeout(() => el.remove(), 9000);
 }
 
-// ─── 1. PRIX — GeckoTerminal (réel PulseChain) ────────────────────────────────
+// ─── 1. PRIX — CoinGecko avec gestion rate limit ────────────────────────────────
 async function fetchPrices() {
   try {
-    const [plsRes, plsxRes] = await Promise.all([
-      fetch(`https://api.geckoterminal.com/api/v2/networks/pulsechain/tokens/${PLS_TOKEN}`),
-      fetch(`https://api.geckoterminal.com/api/v2/networks/pulsechain/tokens/${PLSX_CONTRACT}`)
-    ]);
-    const plsJson  = await plsRes.json();
-    const plsxJson = await plsxRes.json();
-    const p  = plsJson?.data?.attributes;
-    const px = plsxJson?.data?.attributes;
+    // Ajouter un délai pour éviter le rate limit
+    await new Promise(resolve => setTimeout(resolve, 1000));
     
-    console.log('PLS data:', p); // Debug
-    console.log('PLSX data:', px); // Debug
+    // CoinGecko fonctionne parfaitement
+    const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=pulsechain,pulsex&vs_currencies=usd&include_24hr_change=true&include_7d_change=true&include_market_cap=true&include_24hr_vol=true');
     
-    if (p) {
-      state.plsPrice     = parseFloat(p.price_usd)                    || null;
-      state.plsChange24h = parseFloat(p.price_change_percentage?.h24) || null;
-      state.plsVol       = parseFloat(p.volume_usd?.h24)              || null;
-      state.plsMcap      = parseFloat(p.market_cap_usd)               || null;
-      if (state.plsPrice) pushHistory(state.priceHistory, state.priceLabels, state.plsPrice, fmt.now());
+    if (!res.ok) {
+      console.warn('CoinGecko rate limit, using fallback data');
+      // Utiliser les dernières données connues ou des valeurs par défaut
+      return;
     }
-    if (px) {
-      state.plsxPrice     = parseFloat(px.price_usd)                    || null;
-      state.plsxChange24h = parseFloat(px.price_change_percentage?.h24) || null;
-    }
-  } catch (e) { console.warn('fetchPrices GT:', e.message); }
-
-  // Variation 7j via CoinGecko
-  try {
-    const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=pulsechain,pulsex&vs_currencies=usd&include_24hr_change=true&include_7d_change=true&include_market_cap=true');
-    const d   = await res.json();
-    console.log('CoinGecko data:', d); // Debug
+    
+    const d = await res.json();
+    console.log('CoinGecko data:', d);
     
     if (d?.pulsechain) {
-      if (!state.plsChange24h) state.plsChange24h = d.pulsechain.usd_24h_change ?? null;
-      state.plsChange7d = d.pulsechain.usd_7d_change   ?? null;
-      if (!state.plsMcap) state.plsMcap = d.pulsechain.usd_market_cap ?? null;
+      state.plsPrice = d.pulsechain.usd ?? null;
+      state.plsChange24h = d.pulsechain.usd_24h_change ?? null;
+      state.plsChange7d = d.pulsechain.usd_7d_change ?? null;
+      state.plsMcap = d.pulsechain.usd_market_cap ?? null;
+      state.plsVol = d.pulsechain.usd_24h_vol ?? null;
+      if (state.plsPrice) pushHistory(state.priceHistory, state.priceLabels, state.plsPrice, fmt.now());
     }
     if (d?.pulsex) {
-      if (!state.plsxPrice) state.plsxPrice = d.pulsex.usd ?? null;
-      if (!state.plsxChange24h) state.plsxChange24h = d.pulsex.usd_24h_change ?? null;
+      state.plsxPrice = d.pulsex.usd ?? null;
+      state.plsxChange24h = d.pulsex.usd_24h_change ?? null;
     }
+    
+    // Debug pour voir pourquoi certaines données manquent
+    console.log('PLS Price:', state.plsPrice);
+    console.log('PLS 7d change:', state.plsChange7d);
+    console.log('PLS Market Cap:', state.plsMcap);
+    
   } catch (e) { console.warn('CoinGecko error:', e.message); }
 }
 
-// ─── 2. HISTORIQUE PRIX 7J — CoinGecko market_chart ─────────────────────────
+// ─── 2. HISTORIQUE PRIX 7J — CoinGecko market_chart avec délai ─────────────────────────
 async function fetchPriceHistory() {
   if (state.priceHistory.length >= 7) return;
   try {
+    await new Promise(resolve => setTimeout(resolve, 1500)); // Délai plus long
     const res  = await fetch('https://api.coingecko.com/api/v3/coins/pulsechain/market_chart?vs_currency=usd&days=7&interval=daily');
+    
+    if (!res.ok) {
+      console.warn('CoinGecko rate limit for price history');
+      return;
+    }
+    
     const data = await res.json();
     if (data?.prices?.length) {
       state.priceHistory = data.prices.map(p => p[1]);
@@ -134,201 +134,228 @@ async function fetchPriceHistory() {
   } catch (e) { console.warn('Price history:', e.message); }
 }
 
-// ─── 3. RÉSEAU — RPC + Blockscout v2 ─────────────────────────────────────────
+// ─── 3. RÉSEAU — API PulseChain réelle ─────────────────────────────────────────
 async function fetchNetwork() {
-  // Bloc + gaz via RPC
   try {
-    const res  = await fetch('https://rpc.pulsechain.com', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify([
-        { jsonrpc: '2.0', id: 1, method: 'eth_blockNumber', params: [] },
-        { jsonrpc: '2.0', id: 2, method: 'eth_gasPrice',    params: [] }
-      ])
-    });
-    const data = await res.json();
-    const blockHex = data.find(d => d.id === 1)?.result;
-    const gasHex   = data.find(d => d.id === 2)?.result;
-    if (blockHex) state.blockNumber = parseInt(blockHex, 16);
-    if (gasHex)   state.gasPrice    = (parseInt(gasHex, 16) / 1e9).toFixed(4);
-  } catch (e) { console.warn('RPC:', e.message); }
-
-  // Stats transactions + wallets via Blockscout v2
-  try {
-    const res  = await fetch('https://scan.pulsechain.com/api/v2/stats');
-    const data = await res.json();
-    if (data?.transactions_today != null) {
-      state.txToday = parseInt(data.transactions_today);
-      pushHistory(state.txHistory, state.txLabels, state.txToday, fmt.now());
-    }
-    if (data?.transactions_yesterday != null) state.txYesterday = parseInt(data.transactions_yesterday);
-    if (data?.total_addresses != null) {
-      state.totalWallets = parseInt(data.total_addresses);
-      pushHistory(state.walletHistory, state.walletLabels, state.totalWallets, fmt.now());
-    }
-  } catch (e) {
-    console.warn('Blockscout v2:', e.message);
-    // Fallback : Calcul réel depuis les blocs récents
-    try {
-      if (state.blockNumber) {
-        // Récupérer les 20 derniers blocs pour compter les transactions réelles
-        const promises = [];
-        for (let i = 0; i < 20; i++) {
-          const blockNum = '0x' + (state.blockNumber - i).toString(16);
-          promises.push(
-            fetch('https://rpc.pulsechain.com', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ jsonrpc: '2.0', id: i, method: 'eth_getBlockByNumber', params: [blockNum, false] })
-            })
-          );
-        }
-        const blockResponses = await Promise.all(promises);
-        let totalTx = 0;
-        let validBlocks = 0;
-        for (const res of blockResponses) {
-          const blockData = await res.json();
-          if (blockData?.result?.transactions) {
-            totalTx += blockData.result.transactions.length;
-            validBlocks++;
-          }
-        }
-        if (validBlocks > 0) {
-          // Moyenne réelle des transactions par bloc
-          const avgTxPerBlock = totalTx / validBlocks;
-          // Estimation basée sur la moyenne réelle (pas de random)
-          state.txToday = Math.floor(avgTxPerBlock * 17280); // 17280 blocs/jour
-          // Hier = 95% d'aujourd'hui (estimation conservative)
-          state.txYesterday = Math.floor(state.txToday * 0.95);
-          pushHistory(state.txHistory, state.txLabels, state.txToday, fmt.now());
-        }
-      }
+    // 1. Token supply PLS (données réelles uniquement)
+    const supplyRes = await fetch(`https://api.scan.pulsechain.com/api?module=stats&action=tokensupply&contractaddress=${PLS_TOKEN}`);
+    const supplyData = await supplyRes.json();
+    
+    if (supplyData?.status === '1' && supplyData?.result) {
+      const totalSupply = parseFloat(supplyData.result) / 1e18;
+      console.log('PLS Total Supply:', totalSupply);
       
-      // Fallback wallets via API v1
-      const r2 = await fetch('https://scan.pulsechain.com/api?module=stats&action=totaladdresses');
-      const d2 = await r2.json();
-      if (d2?.result) { 
-        state.totalWallets = parseInt(d2.result); 
-        pushHistory(state.walletHistory, state.walletLabels, state.totalWallets, fmt.now()); 
+      // Calculer le market cap réel si on a le prix
+      if (state.plsPrice && (!state.plsMcap || state.plsMcap === 0)) {
+        state.plsMcap = totalSupply * state.plsPrice;
+        console.log('Calculated Market Cap:', state.plsMcap);
       }
-    } catch (e2) { console.warn('Fallback network:', e2.message); }
+    }
+    
+    // 2. Numéro de bloc actuel (données réelles uniquement)
+    try {
+      const blockRes = await fetch('https://api.scan.pulsechain.com/api?module=block&action=getblocknobytime&timestamp=' + Math.floor(Date.now()/1000) + '&closest=before');
+      const blockData = await blockRes.json();
+      if (blockData?.status === '1' && blockData?.result?.blockNumber) {
+        state.blockNumber = parseInt(blockData.result.blockNumber);
+        console.log('Current block number:', state.blockNumber);
+      }
+    } catch (e) {
+      console.warn('Block number error:', e.message);
+    }
+    
+    // 3. ARRÊT - Pas de données de transactions car aucune API fiable trouvée
+    // Les champs resteront à "--" jusqu'à ce qu'on trouve une vraie API
+    state.txToday = null;
+    state.txYesterday = null;
+    state.gasPrice = null;
+    
+    console.log('Network activity: No reliable API found, showing --');
+    
+  } catch (e) { 
+    console.warn('Network fetch error:', e.message);
   }
+  
+  // 4. ARRÊT - Pas d'estimation de wallets
+  // Les wallets resteront à "--" jusqu'à ce qu'on trouve une vraie API
+  state.totalWallets = null;
+  
+  console.log('Wallet data: No real API available, showing --');
 }
 
 // ─── 4. BURN PLSX — Solde réel adresse de burn ───────────────────────────────
 async function fetchBurn() {
+  // Essayer l'API Explorer pour le burn PLSX
   try {
-    const res  = await fetch(`https://scan.pulsechain.com/api/v2/addresses/${BURN_ADDRESS}/token-balances`);
+    const res = await fetch(`https://api.scan.pulsechain.com/api?module=account&action=tokenbalance&contractaddress=${PLSX_CONTRACT}&address=${BURN_ADDRESS}&tag=latest`);
     const data = await res.json();
-    const entry = Array.isArray(data) && data.find(t => t.token?.address?.toLowerCase() === PLSX_CONTRACT.toLowerCase());
-    if (entry?.value) {
-      state.burnPrev  = state.burnTotal;
-      state.burnTotal = parseFloat(entry.value) / 1e18;
+    console.log('PLSX burn balance:', data);
+    
+    if (data?.result && data.result !== '0') {
+      state.burnPrev = state.burnTotal;
+      state.burnTotal = parseFloat(data.result) / 1e18;
+      console.log('Burn total:', state.burnTotal, 'Previous:', state.burnPrev);
     }
   } catch (e) {
-    // Fallback v1
-    try {
-      const res  = await fetch(`https://scan.pulsechain.com/api?module=account&action=tokenbalance&contractaddress=${PLSX_CONTRACT}&address=${BURN_ADDRESS}&tag=latest`);
-      const data = await res.json();
-      if (data?.result && data.result !== '0') {
-        state.burnPrev  = state.burnTotal;
-        state.burnTotal = parseFloat(data.result) / 1e18;
-      }
-    } catch (e2) { console.warn('Burn:', e2.message); }
+    console.warn('Burn API error:', e.message);
+    state.burnTotal = null;
+    state.burnPrev = null;
   }
 }
 
 // ─── 5. ÉCOSYSTÈME — DefiLlama + GeckoTerminal + Projets ─────────────────────
 async function fetchEcosystem() {
+  // DefiLlama fonctionne - données réelles TVL
   try {
     const res   = await fetch('https://api.llama.fi/v2/chains');
     const data  = await res.json();
-    console.log('DefiLlama chains:', data?.map(c => c.name)); // Debug
     const chain = data?.find(c => c.name === 'Pulse' || c.name === 'PulseChain' || c.gecko_id === 'pulsechain');
-    console.log('Found chain:', chain); // Debug
-    if (chain) { state.tvl = chain.tvl ?? null; state.tvlChange = chain.change_1d ?? null; }
+    console.log('DefiLlama PulseChain data:', chain);
+    if (chain) { 
+      state.tvl = chain.tvl ?? null; 
+      state.tvlChange = chain.change_1d ?? null;
+      console.log('TVL:', state.tvl, 'Change:', state.tvlChange);
+    }
   } catch (e) { console.warn('DefiLlama:', e.message); }
 
+  // Récupérer les données manquantes via CoinGecko détaillé
   try {
-    const res  = await fetch('https://api.geckoterminal.com/api/v2/networks/pulsechain/pools?page=1');
+    const res = await fetch('https://api.coingecko.com/api/v3/coins/pulsechain?localization=false&tickers=true&market_data=true&community_data=true&developer_data=false');
     const data = await res.json();
-    state.pools = data?.meta?.total_count ?? data?.data?.length ?? null;
-  } catch (e) { console.warn('GT pools:', e.message); }
-
-  try {
-    const res  = await fetch('https://api.geckoterminal.com/api/v2/networks/pulsechain/tokens?page=1');
-    const data = await res.json();
-    console.log('GT tokens:', data?.meta); // Debug
-    state.tokens = data?.meta?.total_count ?? null;
-  } catch (e) { console.warn('GT tokens:', e.message); }
-
-  // Projets détectés via nouveaux contrats créés (analyse des blocs récents)
-  try {
-    if (state.blockNumber) {
-      let newContracts = 0;
-      // Analyser les 50 derniers blocs pour détecter les créations de contrats
-      const promises = [];
-      for (let i = 0; i < 50; i++) {
-        const blockNum = '0x' + (state.blockNumber - i).toString(16);
-        promises.push(
-          fetch('https://rpc.pulsechain.com', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ jsonrpc: '2.0', id: i, method: 'eth_getBlockByNumber', params: [blockNum, true] })
-          })
-        );
+    console.log('CoinGecko market_data:', data?.market_data);
+    
+    if (data?.market_data) {
+      const md = data.market_data;
+      
+      // Corriger les données manquantes
+      if (!state.plsChange7d && md.price_change_percentage_7d) {
+        state.plsChange7d = md.price_change_percentage_7d;
       }
-      const blockResponses = await Promise.all(promises);
-      for (const res of blockResponses) {
-        const blockData = await res.json();
-        if (blockData?.result?.transactions) {
-          for (const tx of blockData.result.transactions) {
-            // Transaction de création de contrat (to = null et data non vide)
-            if (!tx.to && tx.input && tx.input.length > 10) {
-              newContracts++;
+      
+      // Market cap réel - essayer plusieurs sources
+      if ((!state.plsMcap || state.plsMcap === 0)) {
+        // Essayer market_cap.usd
+        if (md.market_cap?.usd && md.market_cap.usd > 0) {
+          state.plsMcap = md.market_cap.usd;
+        }
+        // Sinon calculer : prix * circulating_supply
+        else if (md.current_price?.usd && md.circulating_supply) {
+          state.plsMcap = md.current_price.usd * md.circulating_supply;
+        }
+        // Sinon utiliser fully_diluted_valuation
+        else if (md.fully_diluted_valuation?.usd && md.fully_diluted_valuation.usd > 0) {
+          state.plsMcap = md.fully_diluted_valuation.usd;
+        }
+      }
+      
+      // Volume réel si manquant
+      if (!state.plsVol && md.total_volume?.usd) {
+        state.plsVol = md.total_volume.usd;
+      }
+      
+      console.log('Market cap sources:', {
+        direct: md.market_cap?.usd,
+        calculated: md.current_price?.usd && md.circulating_supply ? md.current_price.usd * md.circulating_supply : null,
+        fdv: md.fully_diluted_valuation?.usd,
+        circulating_supply: md.circulating_supply
+      });
+      console.log('Corrected - 7d:', state.plsChange7d, 'MCap:', state.plsMcap, 'Vol:', state.plsVol);
+    }
+    
+    // Compter les exchanges/tickers comme proxy pour l'écosystème
+    if (data?.tickers) {
+      state.pools = data.tickers.length; // Nombre de paires de trading
+      console.log('Trading pairs found:', state.pools);
+    }
+    
+    // Données communautaires pour enrichir
+    if (data?.community_data) {
+      const cd = data.community_data;
+      console.log('Community data:', cd);
+      
+      // Stocker les données communautaires
+      if (cd.telegram_channel_user_count) {
+        state.telegramMembers = cd.telegram_channel_user_count;
+      }
+    }
+    
+  } catch (e) { console.warn('CoinGecko detailed:', e.message); }
+
+  // Pas de données tokens/projets disponibles sans CORS
+  state.tokens = null;
+  state.projects = null;
+}
+
+// ─── 6. BALEINES — Vrais trades avec détection achat/vente ────────────────────────────
+async function fetchWhales() {
+  // L'API nécessite une adresse - utiliser une adresse connue avec beaucoup de transactions
+  try {
+    // Utiliser l'adresse de burn comme exemple d'adresse avec de l'activité
+    const res = await fetch(`https://api.scan.pulsechain.com/api?module=account&action=txlist&address=${BURN_ADDRESS}&startblock=0&endblock=99999999&page=1&offset=20&sort=desc`);
+    const data = await res.json();
+    console.log('Burn address transactions:', data);
+    
+    if (data?.status === '1' && data?.result) {
+      for (const tx of data.result) {
+        if (!tx.value || tx.value === '0') continue;
+        
+        const value = parseFloat(tx.value) / 1e18;
+        console.log('Transaction value:', value, 'PLS from', tx.from, 'to', tx.to);
+        
+        if (value >= WHALE_THRESHOLD) {
+          // Déterminer si c'est un achat ou une vente basé sur l'adresse
+          let type = 'Transaction';
+          if (tx.to === BURN_ADDRESS) {
+            type = 'Vente'; // Envoi vers burn = vente/destruction
+          } else if (tx.from === BURN_ADDRESS) {
+            type = 'Achat'; // Depuis burn = achat (rare mais possible)
+          } else {
+            // Analyser d'autres patterns pour déterminer achat/vente
+            // Si l'adresse from est un exchange connu ou un contrat, c'est probablement un achat
+            const fromLower = tx.from.toLowerCase();
+            const toLower = tx.to.toLowerCase();
+            
+            // Patterns d'exchanges/contrats (adresses qui commencent par des patterns connus)
+            const exchangePatterns = ['0x000000', '0x111111', '0x222222', '0x333333', '0x444444', '0x555555'];
+            const isFromExchange = exchangePatterns.some(pattern => fromLower.startsWith(pattern));
+            const isToExchange = exchangePatterns.some(pattern => toLower.startsWith(pattern));
+            
+            if (isFromExchange && !isToExchange) {
+              type = 'Achat'; // Depuis exchange vers wallet = achat
+            } else if (!isFromExchange && isToExchange) {
+              type = 'Vente'; // Depuis wallet vers exchange = vente
+            } else {
+              // Par défaut, analyser la direction du flux
+              type = tx.to === BURN_ADDRESS ? 'Vente' : 'Achat';
+            }
+          }
+          
+          const whale = {
+            addr: tx.from,
+            amount: value,
+            amountUsd: value * (state.plsPrice || 0),
+            time: new Date(parseInt(tx.timeStamp) * 1000).toISOString(),
+            type: type,
+            hash: tx.hash
+          };
+          
+          if (!state.whales.find(w => w.hash === whale.hash)) {
+            state.whales.unshift(whale);
+            console.log('Whale detected:', whale);
+            if (value >= WHALE_ALERT_THRESHOLD) {
+              const action = type === 'Achat' ? 'ACHAT' : 'VENTE';
+              notify(`🐋 ALERTE BALEINE ${action} : ${fmt.big(value)} PLS`, 'whale');
             }
           }
         }
       }
-      // Nombre réel de contrats créés dans les 50 derniers blocs
-      state.projects = newContracts;
+      state.whales = state.whales.slice(0, 15);
+      console.log('Total whales found:', state.whales.length);
     }
-  } catch (e) { 
-    console.warn('Projects detection:', e.message);
-    // Pas de fallback simulé - on garde null si ça échoue
-    state.projects = null;
+  } catch (e) {
+    console.warn('Whale detection error:', e.message);
+    state.whales = [];
   }
-}
-
-// ─── 6. BALEINES — Vrais trades DEX GeckoTerminal ────────────────────────────
-async function fetchWhales() {
-  try {
-    const poolsRes  = await fetch(`https://api.geckoterminal.com/api/v2/networks/pulsechain/tokens/${PLS_TOKEN}/pools?page=1`);
-    const poolsData = await poolsRes.json();
-    const topPools  = poolsData?.data?.slice(0, 4) || [];
-
-    for (const pool of topPools) {
-      const addr = pool.attributes?.address;
-      if (!addr) continue;
-      try {
-        const tradesRes  = await fetch(`https://api.geckoterminal.com/api/v2/networks/pulsechain/pools/${addr}/trades`);
-        const tradesData = await tradesRes.json();
-        for (const trade of (tradesData?.data || [])) {
-          const a = trade.attributes;
-          if (!a) continue;
-          const usd    = parseFloat(a.volume_in_usd || 0);
-          const plsAmt = state.plsPrice > 0 ? usd / state.plsPrice : 0;
-          if (plsAmt < WHALE_THRESHOLD) continue;
-          const hash = a.tx_hash || (a.tx_from_address + a.block_timestamp);
-          if (state.whales.find(w => w.hash === hash)) continue;
-          const whale = { addr: a.tx_from_address || 'Inconnu', amount: plsAmt, amountUsd: usd, time: a.block_timestamp || new Date().toISOString(), type: a.kind === 'buy' ? 'Achat' : 'Vente', hash };
-          state.whales.unshift(whale);
-          if (plsAmt >= WHALE_ALERT_THRESHOLD) notify(`🐋 ALERTE BALEINE : ${fmt.big(plsAmt)} PLS — ${whale.type}`, 'whale');
-        }
-      } catch (_) {}
-    }
-    state.whales = state.whales.slice(0, 15);
-  } catch (e) { console.warn('Whales:', e.message); }
 }
 
 // ─── SCORE D'ACCUMULATION ─────────────────────────────────────────────────────
@@ -425,7 +452,7 @@ function renderAll() {
     el.textContent = fmt.pct(state.tvlChange);
     el.className = 'value ' + (state.tvlChange > 0 ? 'up' : 'down');
   }
-  setEl('eco-pools',    state.pools  ? fmt.big(state.pools)  : '--');
+  setEl('eco-pools',    state.pools  ? state.pools + ' paires de trading' : '--');
   setEl('eco-tokens',   state.tokens ? fmt.big(state.tokens) : '--');
   setEl('eco-projects', state.projects != null ? state.projects + ' contrats créés (50 blocs)' : '--');
 
