@@ -527,3 +527,91 @@ footer {
     min-height: 44px;
   }
 }
+/* Advanced features styling */
+.fear-greed-status {
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.fear-greed-status.extreme-greed { background: #10b981; color: white; }
+.fear-greed-status.greed { background: #34d399; color: white; }
+.fear-greed-status.neutral { background: #6b7280; color: white; }
+.fear-greed-status.fear { background: #f59e0b; color: white; }
+.fear-greed-status.extreme-fear { background: #ef4444; color: white; }
+
+.momentum-trend {
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.momentum-trend.bullish { background: #10b981; color: white; }
+.momentum-trend.bearish { background: #ef4444; color: white; }
+.momentum-trend.neutral { background: #6b7280; color: white; }
+
+.trading-position {
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.trading-position.buy { background: #10b981; color: white; }
+.trading-position.sell { background: #ef4444; color: white; }
+.trading-position.hold { background: #6b7280; color: white; }
+
+.sr-levels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.level {
+  background: #374151;
+  color: #d1d5db;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.level.support { border-left: 3px solid #10b981; }
+.level.resistance { border-left: 3px solid #ef4444; }
+
+.factor-item {
+  display: block;
+  font-size: 0.8rem;
+  margin: 2px 0;
+  color: #9ca3af;
+}
+
+.factor-item strong {
+  color: #d1d5db;
+  font-weight: 600;
+}
+
+/* Mobile-specific advanced features */
+@media (max-width: 768px) {
+  .sr-levels {
+    flex-direction: column;
+  }
+  
+  .level {
+    text-align: center;
+    padding: 6px;
+  }
+  
+  .factor-item {
+    font-size: 0.75rem;
+    padding: 2px 0;
+  }
+  
+  .trading-position {
+    font-size: 0.9rem;
+    padding: 8px;
+  }
+}

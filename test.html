@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Test Dashboard</title>
+</head>
+<body>
+  <h1>Test Dashboard PulseChain</h1>
+  <div id="status">Chargement...</div>
+  <div id="price">Prix: --</div>
+  
+  <script>
+    console.log('🚀 Script de test démarré');
+    
+    document.getElementById('status').textContent = 'Script chargé avec succès';
+    
+    // Test simple d'API
+    async function testAPI() {
+      try {
+        console.log('📡 Test API CoinGecko...');
+        const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=pulsechain&vs_currencies=usd');
+        const data = await res.json();
+        console.log('✅ Données reçues:', data);
+        
+        if (data?.pulsechain?.usd) {
+          document.getElementById('price').textContent = 'Prix: $' + data.pulsechain.usd;
+          document.getElementById('status').textContent = 'API fonctionne !';
+        }
+      } catch (e) {
+        console.error('❌ Erreur API:', e);
+        document.getElementById('status').textContent = 'Erreur: ' + e.message;
+      }
+    }
+    
+    // Lancer le test
+    testAPI();
+  </script>
+</body>
+</html>
