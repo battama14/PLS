@@ -858,27 +858,42 @@ async function refreshAll() {
 
   console.log('🔄 Début de la mise à jour...');
   
-  // Exécuter les fonctions dans l'ordre optimal
   try {
-    // 1. D'abord les prix de base
+    // SÉQUENCE OPTIMISÉE - Un appel à la fois pour éviter les conflits
+    
+    // 1. Prix de base (priorité 1)
+    console.log('📊 Récupération prix...');
     await fetchPrices();
-    console.log('✅ Prix de base récupérés');
+    await new Promise(resolve => setTimeout(resolve, 500)); // Délai entre appels
     
-    // 2. Puis les données détaillées qui peuvent corriger les prix
+    // 2. Données réseau (priorité 2)
+    console.log('🌐 Récupération réseau...');
+    await fetchNetwork();
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // 3. Burn PLSX (priorité 3)
+    console.log('🔥 Récupération burn...');
+    await fetchBurn();
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // 4. Baleines (priorité 4)
+    console.log('🐋 Récupération baleines...');
+    await fetchWhales();
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // 5. Écosystème (priorité 5 - peut corriger les prix)
+    console.log('🌱 Récupération écosystème...');
     await fetchEcosystem();
-    console.log('✅ Données écosystème récupérées');
+    await new Promise(resolve => setTimeout(resolve, 300));
     
-    // 3. Ensuite les autres données
-    await Promise.allSettled([
-      fetchPriceHistory(),
-      fetchNetwork(),
-      fetchBurn(),
-      fetchWhales()
-    ]);
-    console.log('✅ Autres données récupérées');
+    // 6. Historique prix (priorité 6 - optionnel)
+    console.log('📈 Récupération historique...');
+    await fetchPriceHistory();
+    
+    console.log('✅ Toutes les données récupérées');
     
   } catch (e) {
-    console.warn('Erreur lors du refresh:', e.message);
+    console.error('❌ Erreur lors du refresh:', e.message);
   }
   
   console.log('📊 Rendu des données...');
@@ -888,7 +903,8 @@ async function refreshAll() {
     prix: state.plsPrice,
     change7d: state.plsChange7d,
     mcap: state.plsMcap,
-    volume: state.plsVol
+    volume: state.plsVol,
+    whales: state.whales.length
   });
   
   renderAll();
@@ -903,7 +919,7 @@ async function refreshAll() {
     btn.innerHTML = '↻ Actualiser';
   }
   
-  console.log('✅ Mise à jour terminée');
+  console.log('✅ Mise à jour terminée avec succès');
 }
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
