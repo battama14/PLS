@@ -1,7 +1,25 @@
+[build]
+  publish = "."
+
 [[headers]]
   for = "/*"
   [headers.values]
     X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
-    Access-Control-Allow-Origin = "*"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.coingecko.com https://api.dexscreener.com https://rpc.pulsechain.com; img-src 'self' data:; font-src 'self'"
+
+[[redirects]]
+  from = "/api/coingecko/*"
+  to = "https://api.coingecko.com/:splat"
+  status = 200
+  force = true
+  headers = {X-From = "Netlify"}
+
+[[redirects]]
+  from = "/api/dexscreener/*"
+  to = "https://api.dexscreener.com/:splat"
+  status = 200
+  force = true
+  headers = {X-From = "Netlify"}

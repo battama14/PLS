@@ -52,7 +52,7 @@ async function fetchPriceData() {
   const apis = [
     {
       name: 'CoinGecko',
-      url: 'https://api.coingecko.com/api/v3/simple/price?ids=pulsechain&vs_currencies=usd&include_24hr_change=true&include_7d_change=true&include_market_cap=true&include_24hr_vol=true',
+      url: '/api/coingecko/api/v3/simple/price?ids=pulsechain&vs_currencies=usd&include_24hr_change=true&include_7d_change=true&include_market_cap=true&include_24hr_vol=true',
       parser: (data) => data.pulsechain ? {
         price: data.pulsechain.usd,
         change24h: data.pulsechain.usd_24h_change || 0,
@@ -62,13 +62,8 @@ async function fetchPriceData() {
       } : null
     },
     {
-      name: 'CoinMarketCap Proxy',
-      url: 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol=PLS',
-      parser: (data) => null // Pas implémenté car nécessite API key
-    },
-    {
       name: 'DexScreener',
-      url: 'https://api.dexscreener.com/latest/dex/tokens/0xa1077a294dde1b09bb078844df40758a5d0f9a27',
+      url: '/api/dexscreener/latest/dex/tokens/0xa1077a294dde1b09bb078844df40758a5d0f9a27',
       parser: (data) => {
         if (data.pairs && data.pairs.length > 0) {
           const pair = data.pairs[0];
@@ -231,7 +226,7 @@ async function fetchWhales() {
     const existingHashes = new Set(existingWhales.map(w => w.hash));
     
     const newWhales = [];
-    const blocksToScan = 100; // Scanner les 100 derniers blocs
+    const blocksToScan = 50; // Réduire pour Netlify (limites plus strictes)
     
     // Scanner les blocs récents
     for (let i = 0; i < blocksToScan; i++) {
@@ -285,9 +280,9 @@ async function fetchWhales() {
         console.warn(`⚠️ Erreur bloc ${blockNum}:`, blockError);
       }
       
-      // Pause pour éviter le rate limiting - augmentée
-      if (i % 5 === 0) {
-        await new Promise(resolve => setTimeout(resolve, 200));
+      // Pause pour éviter le rate limiting - augmentée pour Netlify
+      if (i % 3 === 0) {
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
     }
     
@@ -487,7 +482,7 @@ async function fetchBurnData() {
     const plsxApis = [
       {
         name: 'CoinGecko PLSX',
-        url: 'https://api.coingecko.com/api/v3/simple/price?ids=pulsex&vs_currencies=usd&include_24hr_change=true',
+        url: '/api/coingecko/api/v3/simple/price?ids=pulsex&vs_currencies=usd&include_24hr_change=true',
         parser: (data) => data.pulsex ? {
           price: data.pulsex.usd,
           change24h: data.pulsex.usd_24h_change || 0
@@ -495,7 +490,7 @@ async function fetchBurnData() {
       },
       {
         name: 'DexScreener PLSX',
-        url: 'https://api.dexscreener.com/latest/dex/tokens/0x95b303987a60c71504d99aa1b13b4da07b0790ab',
+        url: '/api/dexscreener/latest/dex/tokens/0x95b303987a60c71504d99aa1b13b4da07b0790ab',
         parser: (data) => {
           if (data.pairs && data.pairs.length > 0) {
             const pair = data.pairs[0];
@@ -919,11 +914,6 @@ function notifyMegaWhale(whale) {
 document.addEventListener('DOMContentLoaded', function() {
   console.log('🚀 Dashboard PulseChain initialisé');
   
-  // Demander permission notifications sur iPhone
-  if ('Notification' in window && Notification.permission === 'default') {
-    Notification.requestPermission();
-  }
-  
   // Première actualisation
   refreshAll();
   
@@ -933,8 +923,19 @@ document.addEventListener('DOMContentLoaded', function() {
   // Actualisation des méga baleines toutes les 2 minutes (réduit pour éviter surcharge)
   setInterval(fetchWhales, 2 * 60 * 1000);
   
-  // Notification de bienvenue
+  // Notification de bienvenue après interaction utilisateur
   setTimeout(() => {
     showNotification('Dashboard PulseChain activé - Surveillance des méga baleines >100M PLS', 'info', 4000);
   }, 2000);
+  
+  // Demander permission notifications au premier clic utilisateur
+  document.addEventListener('click', function requestNotificationPermission() {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission().then(permission => {
+        console.log('Permission notifications:', permission);
+      });
+    }
+    // Supprimer le listener après la première utilisation
+    document.removeEventListener('click', requestNotificationPermission);
+  }, { once: true });
 });
