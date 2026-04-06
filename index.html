@@ -2,7 +2,9 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>PulseChain Intelligence Dashboard</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>" />
   <link rel="stylesheet" href="style.css" />
@@ -101,9 +103,15 @@
 
       <!-- Whale Tracker -->
       <div class="card card-wide" id="card-whales">
-        <div class="card-title">🐋 Détecteur de Baleines <span class="badge" id="whale-count">0</span></div>
+        <div class="card-title">🐋 Détecteur de Méga Baleines (>100M PLS) <span class="badge" id="whale-count">0</span></div>
+        <div class="whale-controls">
+          <div class="whale-summary">
+            <span class="whale-indicator" id="whale-trend">📊 Neutre</span>
+            <span class="whale-ratio" id="whale-ratio">Achats/Ventes: --</span>
+          </div>
+        </div>
         <div id="whale-list">
-          <div class="empty-state">Surveillance des transactions &gt; 10M PLS...</div>
+          <div class="empty-state">Recherche de méga baleines &gt; 100M PLS...</div>
         </div>
       </div>
 
@@ -236,7 +244,7 @@
       <!-- Signaux Trading -->
       <div class="card" id="card-trading-signals">
         <div class="card-title">📈 Signaux Trading</div>
-        <div class="metric-big" id="trading-position">HOLD</div>
+        <div class="metric-big" id="trading-position">CONSERVER</div>
         <div class="metric-row">
           <span class="label">Confiance</span>
           <span id="trading-confidence" class="value">--</span>
@@ -267,6 +275,8 @@
           <span id="sr-current" class="value">--</span>
         </div>
       </div>
+
+
 
     </div>
 

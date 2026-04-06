@@ -227,6 +227,54 @@ main {
 canvas { margin-top: 14px; }
 
 /* WHALE LIST */
+.whale-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background: rgba(0,212,255,0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(0,212,255,0.1);
+}
+
+.whale-summary {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.whale-indicator {
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.whale-indicator.bullish {
+  background: rgba(16,185,129,0.2);
+  color: var(--green);
+  border: 1px solid rgba(16,185,129,0.3);
+}
+
+.whale-indicator.bearish {
+  background: rgba(239,68,68,0.2);
+  color: var(--red);
+  border: 1px solid rgba(239,68,68,0.3);
+}
+
+.whale-indicator.neutral {
+  background: rgba(245,158,11,0.2);
+  color: var(--yellow);
+  border: 1px solid rgba(245,158,11,0.3);
+}
+
+.whale-ratio {
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-weight: 500;
+}
+
 .whale-item {
   display: flex;
   align-items: center;
@@ -237,6 +285,17 @@ canvas { margin-top: 14px; }
   border-radius: 10px;
   margin-bottom: 8px;
   font-size: 0.83rem;
+  position: relative;
+}
+
+.whale-item.buy {
+  background: rgba(16,185,129,0.08);
+  border-color: rgba(16,185,129,0.2);
+}
+
+.whale-item.sell {
+  background: rgba(239,68,68,0.08);
+  border-color: rgba(239,68,68,0.2);
 }
 
 .whale-icon { font-size: 1.4rem; }
@@ -252,12 +311,49 @@ canvas { margin-top: 14px; }
   text-overflow: ellipsis;
 }
 
-.whale-amount { font-weight: 700; color: var(--green); font-size: 0.95rem; }
-.whale-time { color: var(--muted); font-size: 0.75rem; }
+.whale-amount { 
+  font-weight: 700; 
+  font-size: 0.95rem;
+}
+
+.whale-item.buy .whale-amount { color: var(--green); }
+.whale-item.sell .whale-amount { color: var(--red); }
+
+.whale-time { 
+  color: var(--muted); 
+  font-size: 0.75rem; 
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.whale-type {
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.whale-type.buy {
+  background: rgba(16,185,129,0.2);
+  color: var(--green);
+}
+
+.whale-type.sell {
+  background: rgba(239,68,68,0.2);
+  color: var(--red);
+}
 
 .whale-alert {
   background: rgba(239,68,68,0.1);
   border-color: rgba(239,68,68,0.3);
+  animation: whaleAlert 2s infinite;
+}
+
+@keyframes whaleAlert {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
 }
 
 .empty-state {
@@ -318,6 +414,11 @@ canvas { margin-top: 14px; }
   to { transform: translateX(0); opacity: 1; }
 }
 
+@keyframes slideOut {
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(100%); opacity: 0; }
+}
+
 /* FOOTER */
 footer {
   text-align: center;
@@ -369,12 +470,14 @@ footer {
   }
   
   #last-update {
-    display: none; /* Masquer sur mobile pour économiser l'espace */
+    font-size: 0.7rem; /* Plus petit mais visible */
   }
   
   #refresh-btn {
     padding: 8px 12px;
     font-size: 0.8rem;
+    min-height: 44px;
+    min-width: 44px;
   }
   
   /* Main mobile */
@@ -423,6 +526,7 @@ footer {
   .card-title {
     font-size: 0.8rem;
     margin-bottom: 12px;
+    line-height: 1.4;
   }
   
   .metric-big {
@@ -434,19 +538,61 @@ footer {
     padding: 6px 0;
   }
   
-  /* Whale list mobile */
-  .whale-item {
-    padding: 8px 10px;
-    font-size: 0.8rem;
-    gap: 10px;
+  /* Whale list mobile optimisé */
+  .whale-controls {
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
   }
   
-  .whale-addr {
+  .whale-summary {
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+  }
+  
+  .whale-item {
+    padding: 12px;
+    font-size: 0.8rem;
+    gap: 10px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .whale-header {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    align-items: center;
+  }
+  
+  .whale-details {
+    width: 100%;
     font-size: 0.75rem;
   }
   
-  .whale-amount {
-    font-size: 0.9rem;
+  .whale-addresses {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 6px;
+  }
+  
+  .whale-meta {
+    display: flex;
+    justify-content: space-between;
+    color: var(--muted);
+  }
+  
+  .address {
+    font-family: monospace;
+    font-size: 0.7rem;
+    color: var(--accent);
+  }
+  
+  .arrow {
+    margin: 0 4px;
+    color: var(--muted);
   }
   
   /* Notifications mobile */
@@ -458,8 +604,11 @@ footer {
   }
   
   .notif {
-    padding: 10px 12px;
-    font-size: 0.8rem;
+    padding: 12px;
+    font-size: 0.85rem;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
   }
 }
 
@@ -512,20 +661,98 @@ footer {
   }
 }
 
-/* Touch targets pour mobile */
-@media (max-width: 768px) {
-  #refresh-btn {
-    min-height: 44px; /* Apple recommandation */
-    min-width: 44px;
-  }
-  
-  .whale-item {
-    min-height: 44px;
-  }
-  
-  .notif {
-    min-height: 44px;
-  }
+/* Whale display structure */
+.whale-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.whale-value {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.whale-details {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.whale-addresses {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+
+.address-label {
+  font-size: 0.7rem;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+.address {
+  font-family: monospace;
+  color: var(--accent);
+  font-size: 0.75rem;
+}
+
+.arrow {
+  color: var(--muted);
+  font-weight: bold;
+}
+
+.whale-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.whale-time, .whale-block {
+  font-size: 0.7rem;
+}
+
+/* Status colors */
+.positive { color: var(--green); }
+.negative { color: var(--red); }
+.neutral { color: var(--yellow); }
+
+/* Score factors */
+.score-factor {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin: 2px 0;
+}
+
+/* Support/Resistance levels */
+.sr-levels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.sr-level {
+  background: var(--bg3);
+  color: var(--text);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  font-family: monospace;
+}
+
+.sr-level.support { 
+  border-left: 3px solid var(--green); 
+  background: rgba(16,185,129,0.1);
+}
+
+.sr-level.resistance { 
+  border-left: 3px solid var(--red);
+  background: rgba(239,68,68,0.1);
 }
 /* Advanced features styling */
 .fear-greed-status {
@@ -559,9 +786,9 @@ footer {
   font-size: 1rem;
 }
 
-.trading-position.buy { background: #10b981; color: white; }
-.trading-position.sell { background: #ef4444; color: white; }
-.trading-position.hold { background: #6b7280; color: white; }
+.trading-position.acheter { background: #10b981; color: white; }
+.trading-position.vendre { background: #ef4444; color: white; }
+.trading-position.conserver { background: #6b7280; color: white; }
 
 .sr-levels {
   display: flex;
