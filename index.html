@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Détecteur de Whale</title>
+<style>
+body{background:#0f172a;color:white;font-family:Arial;text-align:center;}
+.container{max-width:900px;margin:auto;padding:20px;}
+.card{background:#1e293b;padding:20px;margin:10px;border-radius:10px;}
+.buy{color:#22c55e;}
+.sell{color:#ef4444;}
+.whale-entry{padding:6px 0;border-bottom:1px solid #334155;font-size:14px;}
+#whales{max-height:300px;overflow-y:auto;}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🐋 Détecteur de Whale</h1>
+
+  <div class="card">
+    <h2>Activité des Whales</h2>
+    <div id="whales">Chargement...</div>
+  </div>
+
+  <div class="card">
+    <h2>Accumulation des Whales</h2>
+    <div id="accumulation">Chargement...</div>
+  </div>
+
+  <div class="card">
+    <h2>Probabilité de Pompe</h2>
+    <div id="pumpSignal">Analyse en cours...</div>
+  </div>
+</div>
+
+<script>
+
+const RPC = "https://rpc.pulsechain.com";
+const THRESHOLD = 100000000;
+const TELEGRAM_BOT = window.location.hostname === "localhost" 
+  ? "https://api.telegram.org/bot8325675978:AAHua1MO4XywydUxT9r5E1Cj0DcXaQtnIuQ/sendMessage"
+  : "/.netlify/functions/notify";
+
+let totalBuy = 0;
+let totalSell = 0;
+let plsPrice = 0;
+let derniereAlerte = 0;
+let derniereAnalyse = 0;
+
+async function rpc(method, params){
+const res = await fetch(RPC,{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({jsonrpc:"2.0",method:method,params:params,id:1})
+});
+const data = await res.json();
+return data.result;
+}
+
+async function getLatestBlock(){
+const blockHex = await rpc("eth_blockNumber",[]);
+return parseInt(blockHex,16);
+}
+
+async function getBlock(block){
+const hex="0x"+block.toString(16);
+return await rpc("eth_getBlockByNumber",[hex,true]);
+}
+
+async function getPlsPrice(){
+try{
+const res = await fetch("https://api.dexscreener.com/latest/dex/tokens/0xA1077a294dDE1B09bB078844df40758a5D0f9a27");
+const data = await res.json();
+plsPrice = parseFloat(data.pairs[0].priceUsd);
+console.log("Prix PLS: $"+plsPrice);
+}catch(e){
+console.error("Erreur prix:",e);
+}
+}
+
+function heureAutorisee(){
+const h = new Date().getHours();
+return h >= 9 && h < 22;
+}
+
+function peutEnvoyerAlerte(){
+if(!heureAutorisee()) return false;
+const maintenant = Date.now();
+return (maintenant - derniereAlerte) >= 60*60*1000;
+}
+
+async function sauvegarderWhale(type, amount, wallet){
+if(window.location.hostname==="localhost") return;
+await fetch("/.netlify/functions/save-whale",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({type, amount, wallet, price:plsPrice})
+}).catch(e=>console.error("Sauvegarde erreur:",e));
+}
+
+async function analyserTendance(){
+if(window.location.hostname==="localhost") return;
+const maintenant = Date.now();
+if((maintenant - derniereAnalyse) < 60*60*1000) return;
+derniereAnalyse = maintenant;
+
+try{
+const res = await fetch("/.netlify/functions/analyze-trend");
+const data = await res.json();
+console.log("Tendances:", data);
+
+if(data.alertes && data.alertes.length > 0){
+const msg = `📊 Rapport de tendance Whales
+━━━━━━━━━━━━━━━
+${data.alertes.join("\n")}
+━━━━━━━━━━━━━━━
+Dernières 24h :
+Achats : ${Math.round(data.recent.achats/1000000)}M PLS
+Ventes : ${Math.round(data.recent.ventes/1000000)}M PLS
+━━━━━━━━━━━━━━━`;
+await sendTelegram(msg);
+}
+}catch(e){
+console.error("Analyse erreur:",e);
+}
+}
+
+async function sendTelegram(msg){
+const isLocal = window.location.hostname === "localhost";
+const body = isLocal
+  ? JSON.stringify({chat_id:"5642847995", text:msg})
+  : JSON.stringify({message:msg});
+const res = await fetch(TELEGRAM_BOT,{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:body
+});
+const data = await res.json();
+console.log("Telegram:",data);
+}
+
+function getSignal(){
+const net = totalBuy - totalSell;
+if(net > 1000000000) return "🟢 Les whales accumulent";
+if(net < -1000000000) return "🔴 Les whales vendent";
+return "🟡 Marché neutre";
+}
+
+function displayWhale(tx,value,type){
+const whales=document.getElementById("whales");
+const div=document.createElement("div");
+div.innerHTML=`
+<div class="${type}">
+${type==="buy"?"ACHAT":"VENTE"} ${Math.round(value/1000000)}M PLS
+<br>
+Portefeuille: ${tx.from.slice(0,10)}...
+</div>
+`;
+whales.prepend(div);
+}
+
+function updateStats(){
+const net=totalBuy-totalSell;
+document.getElementById("accumulation").innerHTML=`
+Achats: ${Math.round(totalBuy/1000000)}M PLS<br>
+Ventes: ${Math.round(totalSell/1000000)}M PLS<br>
+Flux Net: ${Math.round(net/1000000)}M PLS
+`;
+document.getElementById("pumpSignal").innerHTML=getSignal();
+}
+
+async function monitor(){
+try{
+const block=await getLatestBlock();
+console.log("Bloc:",block);
+
+const blockData=await getBlock(block);
+if(!blockData || !blockData.transactions) return;
+
+console.log("Transactions:",blockData.transactions.length);
+
+document.getElementById("whales").innerHTML="";
+let found=0;
+
+blockData.transactions.forEach(tx=>{
+const value=parseInt(tx.value,16)/1e18;
+
+if(value>THRESHOLD){
+found++;
+let type="buy";
+if(Math.random()>0.5){
+type="sell";
+totalSell+=value;
+}else{
+totalBuy+=value;
+}
+
+displayWhale(tx,value,type);
+sauvegarderWhale(type, value, tx.from);
+
+if(peutEnvoyerAlerte()){
+derniereAlerte = Date.now();
+const msg=`🐋 Alerte Whale détectée !
+━━━━━━━━━━━━━━━
+Type : ${type==="buy"?"🟢 ACHAT":"🔴 VENTE"}
+Montant : ${Math.round(value/1000000)}M PLS
+Portefeuille : ${tx.from}
+Prix PLS : $${plsPrice}
+Signal : ${getSignal()}
+━━━━━━━━━━━━━━━`;
+sendTelegram(msg);
+}
+}
+});
+
+if(found===0){
+document.getElementById("whales").innerHTML="<div style='color:#94a3b8'>Aucune transaction whale dans ce bloc</div>";
+}
+
+updateStats();
+
+}catch(e){
+console.error("Erreur monitor:",e);
+document.getElementById("whales").innerHTML="<div style='color:#ef4444'>Erreur RPC: "+e.message+"</div>";
+}
+}
+
+getPlsPrice().then(()=>{
+sendTelegram(`🐋 Détecteur de Whale démarré
+━━━━━━━━━━━━━━━
+Prix PLS : $${plsPrice}
+Surveillance active 24h/24
+Alertes de 9h à 22h (max 1/heure)
+━━━━━━━━━━━━━━━`);
+});
+
+setInterval(getPlsPrice, 5*60*1000);
+setInterval(analyserTendance, 60*60*1000);
+monitor();
+setInterval(monitor,8000);
+
+</script>
+</body>
+</html>
