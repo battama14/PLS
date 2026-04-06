@@ -225,6 +225,8 @@ async function fetchWhales() {
     const existingWhales = JSON.parse(localStorage.getItem('pls-whales-history') || '[]');
     const existingHashes = new Set(existingWhales.map(w => w.hash));
     
+    console.log(`📦 Baleines en cache: ${existingWhales.length}`);
+    
     const newWhales = [];
     const blocksToScan = 50; // Réduire pour Netlify (limites plus strictes)
     
@@ -253,7 +255,9 @@ async function fetchWhales() {
             const valuePLS = valueWei / 1e18;
             
             // Filtrer les transactions whale ET vérifier si c'est nouveau
-            if (valuePLS >= WHALE_THRESHOLD && !existingHashes.has(tx.hash)) {
+            if (valuePLS >= WHALE_THRESHOLD) {
+              // Sur un nouveau déploiement, traiter toutes les baleines comme nouvelles
+              const isNewWhale = !existingHashes.has(tx.hash);
               const type = determineTransactionType(tx);
               
               const whaleTransaction = {
@@ -266,12 +270,16 @@ async function fetchWhales() {
                 block: blockNum
               };
               
-              newWhales.push(whaleTransaction);
-              console.log(`🐋 NOUVELLE méga baleine: ${formatNumber(valuePLS)} PLS (${type})`);
-              
-              // Notification pour les méga baleines >500M PLS
-              if (valuePLS >= 500000000) {
-                notifyMegaWhale(whaleTransaction);
+              if (isNewWhale) {
+                newWhales.push(whaleTransaction);
+                console.log(`🐋 NOUVELLE méga baleine: ${formatNumber(valuePLS)} PLS (${type})`);
+                
+                // Notification pour les méga baleines >500M PLS
+                if (valuePLS >= 500000000) {
+                  notifyMegaWhale(whaleTransaction);
+                }
+              } else {
+                console.log(`🔄 Baleine déjà connue: ${formatNumber(valuePLS)} PLS (${type})`);
               }
             }
           }
@@ -305,7 +313,13 @@ async function fetchWhales() {
       // Notification résumé seulement pour les nouvelles
       showNotification(`${newWhales.length} nouvelle(s) méga baleine(s) détectée(s)`, 'whale', 6000);
     } else {
-      console.log(`🔍 Aucune nouvelle méga baleine (Total en mémoire: ${limitedWhales.length})`);
+      // Si c'est le premier scan (cache vide), montrer toutes les baleines trouvées
+      if (existingWhales.length === 0 && limitedWhales.length > 0) {
+        console.log(`🎆 Premier scan: ${limitedWhales.length} méga baleines découvertes`);
+        showNotification(`${limitedWhales.length} méga baleine(s) découvertes au premier scan`, 'whale', 6000);
+      } else {
+        console.log(`🔍 Aucune nouvelle méga baleine (Total en mémoire: ${limitedWhales.length})`);
+      }
     }
     
   } catch (error) {
@@ -858,6 +872,20 @@ function formatNumber(num) {
   if (num >= 1e6) return (num / 1e6).toFixed(1) + 'M';
   if (num >= 1e3) return (num / 1e3).toFixed(1) + 'K';
   return Math.round(num).toString();
+}
+
+// Fonction pour vider le cache des baleines
+function clearWhaleCache() {
+  localStorage.removeItem('pls-whales-history');
+  whaleData = [];
+  updateWhaleDisplay();
+  showNotification('Cache des baleines vidé - Nouveau scan en cours...', 'info', 3000);
+  console.log('🗑️ Cache des baleines vidé');
+  
+  // Relancer immédiatement la détection
+  setTimeout(() => {
+    fetchWhales();
+  }, 1000);
 }
 
 // Système de notifications optimisé iPhone

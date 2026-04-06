@@ -61,6 +61,23 @@ header {
   color: var(--muted);
 }
 
+#clear-cache-btn {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--red);
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+  margin-right: 8px;
+}
+
+#clear-cache-btn:hover { 
+  background: rgba(239,68,68,0.1); 
+  border-color: var(--red);
+}
+
 #refresh-btn {
   background: var(--bg3);
   border: 1px solid var(--border);
