@@ -1,3 +1,5 @@
+import { getStore } from "@netlify/blobs";
+
 const RPC = "https://rpc.pulsechain.com";
 const WHALE_THRESHOLD = 500000000;
 const BLOCK_LOOKBACK = 5;
@@ -71,8 +73,39 @@ async function checkTokenLiquidity(contract){
 
 export default async function handler(req){
   try{
+    // Charger l'etat persistant depuis Netlify Blobs
+    const store = getStore("whales");
+    let state = await store.get("state", {type:"json"}) || {
+      totalBuy24h: 0,
+      totalSell24h: 0,
+      totalBuy1h: 0,
+      totalSell1h: 0,
+      lastBlock: 0,
+      lastUpdate: Date.now(),
+      lastHourReset: Date.now(),
+      lastBurstAlert: 0,
+      lastAccumulationAlert: 0
+    };
+
+    // Reset 24h
+    if(Date.now() - state.lastUpdate > 24*60*60*1000){
+      state.totalBuy24h = 0;
+      state.totalSell24h = 0;
+    }
+    // Reset 1h
+    if(Date.now() - state.lastHourReset > 60*60*1000){
+      state.totalBuy1h = 0;
+      state.totalSell1h = 0;
+      state.lastHourReset = Date.now();
+    }
+
     const latestBlockHex = await rpc("eth_blockNumber", []);
     const latestBlock = parseInt(latestBlockHex, 16);
+
+    // Eviter de rescanner les memes blocs
+    if(latestBlock <= state.lastBlock){
+      return new Response("No new blocks", {status: 200});
+    }
 
     const {pls, plsx} = await getMarketData();
     const plsPrice = pls ? parseFloat(pls.priceUsd) : 0;
@@ -99,12 +132,14 @@ export default async function handler(req){
     const liquidityEvents = {};
     const preSpikeWhales = {};
     const pumpScores = {};
-    let totalFlow = 0;
-    let totalVolume = 0;
+    let totalFlow = state.totalBuy24h;
+    let totalVolume = state.totalSell24h;
+    let totalBuy1h = state.totalBuy1h;
+    let totalSell1h = state.totalSell1h;
     let whaleBuysHistory = [];
     let whaleBurst = [];
-    let lastAccumulationAlert = 0;
-    let lastBurstAlert = 0;
+    let lastAccumulationAlert = state.lastAccumulationAlert;
+    let lastBurstAlert = state.lastBurstAlert;
 
     function calculatePumpScore(contract){
       let score = 0;
@@ -201,7 +236,9 @@ export default async function handler(req){
         if(alertesEnvoyees.has(tx.hash)) continue;
         alertesEnvoyees.add(tx.hash);
 
+        // Incrementer BUY (transfert simple = on considere comme flow entrant)
         totalFlow += value;
+        totalBuy1h += value;
 
         // Whale burst
         whaleBurst.push({amount: value, time: Date.now()});
@@ -246,16 +283,40 @@ export default async function handler(req){
       }
     }
 
-    // Rapport horaire (minute 0-2)
+    // Rapport horaire (minute 0 seulement, pas 0-2 pour eviter doublons)
     const minute = new Date().getMinutes();
-    if(minute < 2){
-      const net = totalFlow - totalVolume;
-      let signal;
-      if(net > 1000000000) signal = "🟢 Accumulation";
-      else if(net < -1000000000) signal = "🔴 Distribution";
-      else signal = "🟡 Neutre";
-      await sendTelegram(`📊 Rapport Horaire PulseChain\n━━━━━━━━━━━━━━━\nPrix PLS : $${plsPrice}\nVariation 1h : ${plsChange > 0 ? "+" : ""}${plsChange}%\nFlux Whales : ${Math.round(totalFlow/1000000)}M PLS\nSignal : ${signal}\n━━━━━━━━━━━━━━━`);
+    if(minute === 0){
+      const net24h = totalFlow - totalVolume;
+      const net1h = totalBuy1h - totalSell1h;
+      let signal24h, signal1h;
+      if(net24h > 1000000000) signal24h = "🟢 Accumulation";
+      else if(net24h < -1000000000) signal24h = "🔴 Distribution";
+      else signal24h = "🟡 Neutre";
+      if(net1h > 500000000) signal1h = "🟢 Hausse";
+      else if(net1h < -500000000) signal1h = "🔴 Baisse";
+      else signal1h = "🟡 Stable";
+
+      // Interpretation croisee
+      let interpretation = "";
+      if(net1h > 0 && net24h > 0) interpretation = "📈 Accumulation continue";
+      else if(net1h < 0 && net24h > 0) interpretation = "⚠️ Correction sur tendance haussiere";
+      else if(net1h > 0 && net24h < 0) interpretation = "🔄 Rebond sur tendance baissiere";
+      else interpretation = "📉 Distribution continue";
+
+      await sendTelegram(`📊 Rapport Horaire PulseChain\n━━━━━━━━━━━━━━━\nPrix PLS : $${plsPrice}\nVariation 1h : ${plsChange > 0 ? "+" : ""}${plsChange}%\n━━━━━━━━━━━━━━━\nWhales 1h\nBUY : ${Math.round(totalBuy1h/1000000)}M PLS\nSELL : ${Math.round(totalSell1h/1000000)}M PLS\nFlux 1h : ${net1h > 0 ? "+" : ""}${Math.round(net1h/1000000)}M ${signal1h}\n━━━━━━━━━━━━━━━\nWhales 24h\nBUY : ${Math.round(totalFlow/1000000)}M PLS\nSELL : ${Math.round(totalVolume/1000000)}M PLS\nFlux 24h : ${net24h > 0 ? "+" : ""}${Math.round(net24h/1000000)}M ${signal24h}\n━━━━━━━━━━━━━━━\n${interpretation}\n━━━━━━━━━━━━━━━`);
     }
+
+    // Sauvegarder l'etat mis a jour
+    state.totalBuy24h = totalFlow;
+    state.totalSell24h = totalVolume;
+    state.totalBuy1h = totalBuy1h;
+    state.totalSell1h = totalSell1h;
+    state.netflow24h = totalFlow - totalVolume;
+    state.lastBlock = latestBlock;
+    state.lastUpdate = Date.now();
+    state.lastBurstAlert = lastBurstAlert;
+    state.lastAccumulationAlert = lastAccumulationAlert;
+    await store.setJSON("state", state);
 
     return new Response("OK", {status: 200});
 
