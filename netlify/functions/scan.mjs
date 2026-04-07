@@ -77,17 +77,27 @@ ${explication}
 ━━━━━━━━━━━━━━━`);
         }
 
-        // Nouveau token (contrat déployé) - max 1 par scan
+        // Nouveau token (contrat déployé)
         if(!tx.to && !newTokenDetecte){
-          newTokenDetecte = true;
           const contractAddress = tx.hash.slice(0,42);
-          await sendTelegram(`🪙 Nouveau Token Détecté !
+          try{
+            const dex = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${contractAddress}`);
+            const dexData = await dex.json();
+            const pair = dexData.pairs && dexData.pairs[0];
+            const liquidity = pair ? parseFloat(pair.liquidity?.usd || 0) : 0;
+            if(liquidity < 3000) continue;
+            newTokenDetecte = true;
+            await sendTelegram(`🪙 Nouveau Token Détecté !
 ━━━━━━━━━━━━━━━
 Contrat : ${contractAddress}
+Liquidité : $${Math.round(liquidity).toLocaleString()}
 ⚠️ Possible lancement de memecoin
-Vérifiez la liquidité avant d'investir
+Vérifiez avant d'investir
 https://scan.pulsechain.com/address/${contractAddress}
 ━━━━━━━━━━━━━━━`);
+          }catch(e){
+            // DexScreener pas encore indexé, on ignore
+          }
         }
       }
     }
