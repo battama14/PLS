@@ -20,11 +20,35 @@ h2{font-size:clamp(0.95rem,4vw,1.3rem);margin-bottom:12px;}
 .aide{background:#0f2744;border-left:3px solid #3b82f6;border-radius:8px;padding:12px;margin-top:14px;text-align:left;font-size:clamp(11px,3vw,13px);color:#94a3b8;line-height:1.7;}
 .aide-titre{color:#60a5fa;font-weight:bold;margin-bottom:6px;font-size:clamp(11px,3vw,13px);}
 .aide-ligne{margin:2px 0;}
+.group-title{color:#60a5fa;font-size:clamp(10px,2.5vw,12px);font-weight:bold;text-transform:uppercase;letter-spacing:2px;padding:16px 0 4px;opacity:0.7;}
 </style>
 </head>
 <body>
 <div class="container">
   <h1>🐋 Détecteur de Whale</h1>
+
+  <div class="card" style="border:1px solid #3b82f6;">
+    <h2>📊 PulseChain Market Monitor</h2>
+    <div id="plsMarket" style="font-size:clamp(12px,3vw,14px);line-height:2;">Chargement...</div>
+  </div>
+
+  <div class="card">
+    <h2>🔥 PLS Burn Monitor</h2>
+    <div id="plsBurn" style="font-size:clamp(12px,3vw,14px);line-height:2;">Chargement...</div>
+    <div class="aide">
+      <div class="aide-titre">📖 Comment interpréter ces données ?</div>
+      <div class="aide-ligne">Le burn correspond aux frais de transaction détruits sur le réseau.</div>
+      <div class="aide-ligne">🟢 <strong>Burn élevé</strong> = forte activité réseau.</div>
+      <div class="aide-ligne">🔥 <strong>Burn en forte hausse</strong> = spéculation + possible pump.</div>
+    </div>
+  </div>
+
+  <div class="card" style="border:1px solid #ef4444;">
+    <h2>🚨 Trading Signals</h2>
+    <div id="tradingSignals" style="max-height:200px;overflow-y:auto;">Monitoring...</div>
+  </div>
+
+  <div class="group-title">📊 Analyse du Marché</div>
 
   <div class="card">
     <h2>Activité des Whales</h2>
@@ -77,6 +101,8 @@ h2{font-size:clamp(0.95rem,4vw,1.3rem);margin-bottom:12px;}
     </div>
   </div>
 
+  <div class="group-title">💰 Analyse des Tokens</div>
+
   <div class="card">
     <h2>🚀 Pump Candidates</h2>
     <div id="pumpCandidates" style="max-height:260px;overflow-y:auto;">En attente...</div>
@@ -88,6 +114,8 @@ h2{font-size:clamp(0.95rem,4vw,1.3rem);margin-bottom:12px;}
       <div class="aide-ligne">👁️ <strong>Surveillez :</strong> les tokens avec score > 80 et activité whale confirmée.</div>
     </div>
   </div>
+
+  <div class="group-title">💼 Analyse des Wallets</div>
 
   <div class="card">
     <h2>📋 Whale Watchlist</h2>
@@ -135,19 +163,86 @@ h2{font-size:clamp(0.95rem,4vw,1.3rem);margin-bottom:12px;}
     </div>
   </div>
 
+  <div class="card">
+    <h2>🧠 Insider Wallets</h2>
+    <div id="insiderWallets" style="max-height:260px;overflow-y:auto;">Scanning...</div>
+    <div class="aide">
+      <div class="aide-titre">📖 Comment interpréter ces données ?</div>
+      <div class="aide-ligne">Un insider wallet est un wallet qui crée un token, une pool ET achète avant tout le monde.</div>
+      <div class="aide-ligne">🟢 <strong>Signal positif :</strong> insider actif = possible x20/x50 à venir.</div>
+      <div class="aide-ligne">👁️ <strong>Surveillez :</strong> si un insider wallet commence à acheter massivement.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🚀 Pump Probability Score</h2>
+    <div id="pumpScores" style="max-height:260px;overflow-y:auto;">Scanning...</div>
+    <div class="aide">
+      <div class="aide-titre">📖 Comment interpréter ce score ?</div>
+      <div class="aide-ligne">Score combiné de tous les signaux : createPair, LP lock, insider, whales, spike.</div>
+      <div class="aide-ligne">❌ <strong>0-30 :</strong> Faible | ⚠️ <strong>30-50 :</strong> Incertain | 🟡 <strong>50-70 :</strong> Intéressant</div>
+      <div class="aide-ligne">🔥 <strong>70-85 :</strong> Très bon | 🚀 <strong>85-100 :</strong> Potentiel pump élevé</div>
+      <div class="aide-ligne">👁️ <strong>Surveillez :</strong> tout token avec score > 80 et plusieurs signaux confirmés.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🐋 Pre-Spike Whales</h2>
+    <div id="preSpikeWhales" style="max-height:260px;overflow-y:auto;">Scanning...</div>
+    <div class="aide">
+      <div class="aide-titre">📖 Comment interpréter ces données ?</div>
+      <div class="aide-ligne">Détecte les whales qui achètent AVANT un liquidity spike = insiders / snipers.</div>
+      <div class="aide-ligne">🟢 <strong>Signal très bullish :</strong> ≥ 2 whales avant le spike = possible x50/x100.</div>
+      <div class="aide-ligne">👁️ <strong>Surveillez :</strong> ce signal combiné avec LP lock + insider wallet = setup idéal.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>💧 Liquidity Spike</h2>
+    <div id="liquiditySpike" style="max-height:260px;overflow-y:auto;">Scanning...</div>
+    <div class="aide">
+      <div class="aide-titre">📖 Comment interpréter ces données ?</div>
+      <div class="aide-ligne">Détecte quand la liquidité d'un token double en moins de 5 minutes.</div>
+      <div class="aide-ligne">🟢 <strong>Signal fort :</strong> liquidité x2 ou plus = forte entrée de capital = possible pump.</div>
+      <div class="aide-ligne">👁️ <strong>Surveillez :</strong> si ce signal apparaît avec un insider wallet = très fort signal.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🚀 Early Whale Entry</h2>
+    <div id="earlyWhales" style="max-height:260px;overflow-y:auto;">Scanning...</div>
+    <div class="aide">
+      <div class="aide-titre">📖 Comment interpréter ces données ?</div>
+      <div class="aide-ligne">Détecte quand plusieurs whales achètent dans les 30 secondes après l'ajout de liquidité.</div>
+      <div class="aide-ligne">🟢 <strong>Signal très fort :</strong> ≥ 3 whales en 30 sec = bots insiders / snipers = possible x10/x50.</div>
+      <div class="aide-ligne">👁️ <strong>Surveillez :</strong> le token concerné immédiatement après ce signal.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🧠 Smart Money Wallets</h2>
+    <div id="smartMoney" style="max-height:260px;overflow-y:auto;">En attente...</div>
+    <div class="aide">
+      <div class="aide-titre">📖 Comment interpréter ces données ?</div>
+      <div class="aide-ligne">Wallets qui ont acheté avant des hausses de prix = comportement "smart money".</div>
+      <div class="aide-ligne">🟢 <strong>Signal positif :</strong> wallet avec plusieurs prédictions réussies = whale stratégique.</div>
+      <div class="aide-ligne">👁️ <strong>Surveillez :</strong> si un smart money wallet est actif, un pump est possible.</div>
+    </div>
+  </div>
+
 </div>
 
 <script>
 
 const RPC = "https://rpc.pulsechain.com";
-const WHALE_THRESHOLD = 100000000;
+const WHALE_THRESHOLD = 500000000;
 const BLOCK_LOOKBACK = 5;
 const TELEGRAM_BOT = window.location.hostname === "localhost"
   ? "https://api.telegram.org/bot8325675978:AAHua1MO4XywydUxT9r5E1Cj0DcXaQtnIuQ/sendMessage"
   : "/.netlify/functions/notify";
 
-let totalBuy = 0;
-let totalSell = 0;
+let totalFlow = 0; // volume total des transferts whales
+let totalVolume = 0; // volume total des swaps detectes
 let plsPrice = 0;
 let derniereAnalyse = 0;
 let whaleScore = 0;
@@ -155,6 +250,139 @@ let activityScore = 0;
 let pumpScore = 0;
 let pumpRadarAlerte = false;
 let earlyPumpAlerte = false;
+let whaleBuysHistory = [];
+let whaleBurst = [];
+let lastAccumulationAlert = 0;
+let lastBurstAlert = 0;
+
+async function monitorPLSBurn(){
+try{
+const latestBlock = await getLatestBlock();
+if(lastBurnBlock === 0){ lastBurnBlock = latestBlock; return; }
+
+let burnTotal = 0;
+let txTotal = 0;
+
+for(let i=0;i<5;i++){
+const block = await getBlock(latestBlock-i);
+if(!block || !block.transactions) continue;
+txTotal += block.transactions.length;
+const baseFee = parseInt(block.baseFeePerGas || "0", 16);
+const gasUsed = parseInt(block.gasUsed || "0", 16);
+burnTotal += gasUsed * baseFee;
+}
+
+burnHistory.push(burnTotal);
+if(burnHistory.length > 20) burnHistory.shift();
+
+displayBurnData(burnTotal, txTotal);
+detectBurnSpike(burnTotal);
+
+}catch(e){
+console.error("Burn monitor error:",e);
+}
+}
+
+function displayBurnData(burn, txs){
+let activity="⚪ Faible";
+let color="#94a3b8";
+if(txs > 200){ activity="🟡 Active"; color="#eab308"; }
+if(txs > 400){ activity="🟢 Très active"; color="#22c55e"; }
+const avgBurn = burnHistory.length > 0 ? burnHistory.reduce((a,b)=>a+b,0)/burnHistory.length : 0;
+const burnTrend = avgBurn > 0 ? ((burn/avgBurn-1)*100).toFixed(1) : 0;
+const trendColor = burnTrend > 0 ? "#22c55e" : "#ef4444";
+document.getElementById("plsBurn").innerHTML=`
+<div style="text-align:left">
+Burn récent : <strong>${burn.toLocaleString()}</strong> wei<br>
+Tendance : <span style="color:${trendColor}">${burnTrend > 0 ? "+" : ""}${burnTrend}% vs moyenne</span><br>
+Transactions réseau : <strong>${txs}</strong><br>
+Activité réseau : <span style="color:${color}">${activity}</span>
+</div>`;
+}
+
+function detectBurnSpike(burn){
+if(burnHistory.length < 5) return;
+const avg = burnHistory.reduce((a,b)=>a+b,0) / burnHistory.length;
+if(burn > avg * 1.8){
+const key = Math.floor(Date.now()/300000); // 1 alerte par 5 min
+if(!burnSpikeAlerte.has(key)){
+burnSpikeAlerte.add(key);
+sendTelegram(`🔥 PLS BURN SPIKE !
+━━━━━━━━━━━━━━━
+Burn : ${burn.toLocaleString()} wei
++${Math.round((burn/avg-1)*100)}% vs moyenne
+Activité réseau en forte hausse
+Possible spéculation sur PulseChain
+━━━━━━━━━━━━━━━`, "high");
+}
+}
+}
+
+async function monitorPLSMarket(){
+try{
+const [resPLS, resPLSX] = await Promise.all([
+fetch("https://api.dexscreener.com/latest/dex/tokens/0xA1077a294dDE1B09bB078844df40758a5D0f9a27"),
+fetch("https://api.dexscreener.com/latest/dex/tokens/0x95B303987A60C71504D99Aa1b13B4DA07b0790ab")
+]);
+const [dataPLS, dataPLSX] = await Promise.all([resPLS.json(), resPLSX.json()]);
+const pls = dataPLS.pairs[0];
+const plsx = dataPLSX.pairs[0];
+
+plsPrice = parseFloat(pls.priceUsd);
+
+const plsChange = parseFloat(pls.priceChange?.h1 || 0);
+const plsChangeColor = plsChange >= 0 ? "#22c55e" : "#ef4444";
+const plsxChange = parseFloat(plsx.priceChange?.h1 || 0);
+const plsxChangeColor = plsxChange >= 0 ? "#22c55e" : "#ef4444";
+
+document.getElementById("plsMarket").innerHTML = `
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;text-align:left">
+<div>
+<strong style="color:#60a5fa">PLS</strong><br>
+Prix : $${pls.priceUsd}<br>
+1h : <span style="color:${plsChangeColor}">${plsChange > 0 ? "+" : ""}${plsChange}%</span><br>
+Volume 24h : $${Number(pls.volume?.h24||0).toLocaleString()}<br>
+Liquidité : $${Number(pls.liquidity?.usd||0).toLocaleString()}
+</div>
+<div>
+<strong style="color:#a78bfa">PLSX</strong><br>
+Prix : $${plsx.priceUsd}<br>
+1h : <span style="color:${plsxChangeColor}">${plsxChange > 0 ? "+" : ""}${plsxChange}%</span><br>
+Volume 24h : $${Number(plsx.volume?.h24||0).toLocaleString()}<br>
+Liquidité : $${Number(plsx.liquidity?.usd||0).toLocaleString()}
+</div>
+</div>`;
+
+// Alertes marche
+if(plsChange > 5){
+sendTelegram(`🚀 PLS MOMENTUM
+━━━━━━━━━━━━━━━
+Hausse 1h : +${plsChange}%
+Prix : $${pls.priceUsd}
+Volume en hausse
+Possible mouvement marché
+━━━━━━━━━━━━━━━`, "high");
+}
+if(plsChange < -5){
+sendTelegram(`⚠️ PLS SELL PRESSURE
+━━━━━━━━━━━━━━━
+Baisse 1h : ${plsChange}%
+Prix : $${pls.priceUsd}
+Whales possiblement vendeuses
+━━━━━━━━━━━━━━━`, "high");
+}
+if(plsx.volume?.h24 > pls.volume?.h24){
+sendTelegram(`📊 Capital Rotation
+━━━━━━━━━━━━━━━
+PLSX volume dépasse PLS
+Possible rotation vers DEX
+━━━━━━━━━━━━━━━`, "medium");
+}
+
+}catch(e){
+console.error("PLS monitor error:",e);
+}
+}
 
 async function rpc(method, params){
 const res = await fetch(RPC,{
@@ -193,6 +421,11 @@ return h >= 9 && h < 22;
 }
 
 const alertesEnvoyees = new Set();
+let lastTelegramAlert = 0;
+let lastBurnBlock = 0;
+let burnHistory = [];
+let lastScannedBlock = 0;
+const burnSpikeAlerte = new Set();
 
 function peutEnvoyerAlerte(txHash){
 if(alertesEnvoyees.has(txHash)) return false;
@@ -236,7 +469,11 @@ console.error("Analyse erreur:",e);
 }
 }
 
-async function sendTelegram(msg){
+async function sendTelegram(msg, level="medium"){
+if(level === "low") return;
+if(Date.now() - lastTelegramAlert < 120000 && level !== "high") return;
+if(!heureAutorisee() && window.location.hostname !== "localhost") return;
+lastTelegramAlert = Date.now();
 const isLocal = window.location.hostname === "localhost";
 const body = isLocal
   ? JSON.stringify({chat_id:"5642847995", text:msg})
@@ -248,19 +485,32 @@ body:body
 });
 const data = await res.json();
 console.log("Telegram:",data);
+addTradingSignal(msg, level);
+}
+
+function addTradingSignal(msg, level){
+const el = document.getElementById("tradingSignals");
+if(el.innerHTML==="Monitoring...") el.innerHTML="";
+const div = document.createElement("div");
+div.className="whale-entry";
+const color = level==="high" ? "#ef4444" : "#eab308";
+const icon = level==="high" ? "🚨" : "⚠️";
+const time = new Date().toLocaleTimeString("fr-FR");
+div.innerHTML=`<span style="color:${color}">${icon}</span> <small style="color:#64748b">${time}</small><br><span style="font-size:11px">${msg.split("\n")[0]}</span>`;
+el.prepend(div);
 }
 
 function calculatePumpScore(){
-const whaleNet = totalBuy - totalSell;
+const whaleNet = totalFlow - totalVolume;
 
 if(whaleNet > 1000000000) whaleScore = 40;
 else if(whaleNet > 500000000) whaleScore = 25;
 else if(whaleNet < -1000000000) whaleScore = -30;
 else whaleScore = 10;
 
-activityScore = Math.floor(Math.random()*30)+10;
+activityScore = 10; // mis a jour dans scanWhales avec block.transactions.length
 
-pumpScore = whaleScore + activityScore;
+pumpScore = calculateAdvancedPumpScore();
 if(pumpScore < 0) pumpScore = 0;
 if(pumpScore > 100) pumpScore = 100;
 
@@ -304,17 +554,17 @@ const whales=document.getElementById("whales");
 if(whales.innerHTML==="Chargement...") whales.innerHTML="";
 const div=document.createElement("div");
 div.className="whale-entry";
-div.innerHTML=`<span class="${type}">${type==="buy"?"🟢 ACHAT":"🔴 VENTE"} ${Math.round(value/1000000)}M PLS</span><br>
+div.innerHTML=`<span style="color:#60a5fa">🐋 TRANSFERT WHALE ${Math.round(value/1000000)}M PLS</span><br>
 Portefeuille : <a href="https://scan.pulsechain.com/address/${tx.from}" target="_blank" style="color:#60a5fa;text-decoration:none">${tx.from.slice(0,12)}...</a><br>
 Bloc : ${parseInt(tx.blockNumber,16)}`;
 whales.prepend(div);
 }
 
 function updateStats(){
-const net=totalBuy-totalSell;
+const net=totalFlow-totalVolume;
 document.getElementById("accumulation").innerHTML=`
-Achats : ${Math.round(totalBuy/1000000)}M PLS<br>
-Ventes : ${Math.round(totalSell/1000000)}M PLS<br>
+Flux Whales : ${Math.round(totalFlow/1000000)}M PLS<br>
+Volume Swaps : ${Math.round(totalVolume/1000000)}M PLS<br>
 Flux Net : ${Math.round(net/1000000)}M PLS
 `;
 
@@ -332,59 +582,662 @@ explication="Les whales achètent et vendent presque autant. Le marché est stab
 document.getElementById("pumpSignal").innerHTML=`<strong>${signal}</strong><br><small style='color:#94a3b8'>${explication}</small>`;
 }
 
+
+const PULSEX_ROUTER = "0x98bf93ebf5c380C0e6Ae8e192A7e2AE08edAcc02";
+const PULSEX_FACTORY = "0x1715a3E4A142d8b698131108995174F37aEBA10D";
+const CREATE_PAIR_METHOD = "0xc9c65396";
+const SWAP_METHODS = ["0x38ed1739","0x7ff36ab5","0x18cbafe5"];
+const ADD_LIQUIDITY_METHOD = "0xe8e33700";
+
+const createPairDetectes = new Set();
+let smartMoneyWallets = {};
+let devWallets = {};
+let insiderWallets = {};
+let liquidityLocks = {};
+let devSupplyData = {};
+let liquidityEvents = {};
+let liquidityHistory = {};
+let preSpikeWhales = {};
+let pumpScores = {};
+let createPairDetected = {};
+let liquidityAdded = {};
+let lpLockedContracts = {};
+let earlyWhaleSignals = {};
+let liquiditySpikeDetected = {};
+const pumpScoreAlerte = new Set();
+const preSpikeDeclenche = new Set();
+const liquiditySpikeDeclenche = new Set();
+let earlyWhaleBuys = {};
+const earlyPumpDeclenche = new Set();
+
+const LP_LOCK_ADDRESSES = [
+"0x000000000000000000000000000000000000dead",
+"0x0000000000000000000000000000000000000000"
+];
+const largeSwapsEnvoyes = new Set();
+const liquiditeEnvoyee = new Set();
+const newPairEnvoye = new Set();
+
+async function detectLargeSwaps(tx,value){
+if(!tx.input || tx.input === "0x") return;
+if(tx.to?.toLowerCase() !== PULSEX_ROUTER.toLowerCase()) return;
+const signature = tx.input.slice(0,10);
+if(!SWAP_METHODS.includes(signature)) return;
+// Filtre approximatif : un vrai swap a un input long (encodage ABI)
+// Les vrais scanners utilisent les event logs pour plus de precision
+if(tx.input.length < 200) return;
+if(largeSwapsEnvoyes.has(tx.hash)) return;
+largeSwapsEnvoyes.add(tx.hash);
+// Tracker pour pre-spike detection - on associe au dernier token detecte
+Object.keys(liquidityHistory).forEach(contract => trackWhaleBeforeSpike(tx, value, contract));
+if(value > 1000000000){
+sendTelegram(`🐋 Gros Swap Détecté !
+━━━━━━━━━━━━━━━
+Montant PLS : ${Math.round(value/1000000)}M PLS
+Wallet : ${tx.from}
+Bloc : ${parseInt(tx.blockNumber,16)}
+Prix PLS : $${plsPrice}
+━━━━━━━━━━━━━━━`, "medium");
+}
+}
+
+async function detectLiquidity(tx){
+if(!tx.input || tx.input === "0x") return;
+const method = tx.input.slice(0,10);
+if(method !== ADD_LIQUIDITY_METHOD) return;
+if(liquiditeEnvoyee.has(tx.hash)) return;
+liquiditeEnvoyee.add(tx.hash);
+if(tx.creates) liquidityAdded[tx.creates] = true;
+trackLiquidityEvent(tx);
+sendTelegram(`💧 Liquidité Ajoutée !
+Wallet : ${tx.from}`, "low");
+}
+
+function displayNewPair(tx){
+const el = document.getElementById("memecoinScanner");
+if(el.innerHTML==="En attente...") el.innerHTML="";
+const now = new Date();
+const dateHeure = now.toLocaleDateString("fr-FR")+" à "+now.toLocaleTimeString("fr-FR");
+const div = document.createElement("div");
+div.className="whale-entry";
+div.innerHTML=`🧪 Nouvelle Pool PulseX<br><a href="https://scan.pulsechain.com/address/${tx.from}" target="_blank" style="color:#60a5fa;text-decoration:none;font-size:12px">${tx.from}</a><br><span style="color:#eab308">⚠️ createPair détecté - avant Dexscreener</span><br>Bloc : ${parseInt(tx.blockNumber,16)}<br><span style="color:#64748b;font-size:11px">🗓️ ${dateHeure}</span>`;
+el.prepend(div);
+}
+
+async function detectCreatePair(tx){
+if(!tx.input || tx.input === "0x") return;
+if(tx.to?.toLowerCase() !== PULSEX_FACTORY.toLowerCase()) return;
+const signature = tx.input.slice(0,10);
+if(signature !== CREATE_PAIR_METHOD) return;
+if(createPairDetectes.has(tx.hash)) return;
+createPairDetectes.add(tx.hash);
+sendTelegram(`🧪 Nouvelle Pool PulseX détectée !
+Wallet : ${tx.from}
+Bloc : ${parseInt(tx.blockNumber,16)}`, "low");
+displayNewPair(tx);
+}
+
+async function detectNewPair(tx){
+if(!tx.creates) return;
+const contract = tx.creates; // adresse reelle du contrat cree
+analyzeDevSupply(contract, tx.from);
+if(newPairEnvoye.has(contract)) return;
+newPairEnvoye.add(contract);
+displayMemecoin(contract);
+sendTelegram(`💰 Nouveau Token : ${contract}`, "low");
+}
+
+function calculateAdvancedPumpScore(){
+let score = 0;
+if(totalFlow > totalVolume) score += 30;
+if(whaleBuysHistory.length > 3) score += 30;
+if(pumpCandidates.length > 2) score += 20;
+if(detectedTokens.size > 3) score += 20;
+if(score > 100) score = 100;
+
+if(score > 70){
+Object.keys(smartMoneyWallets).forEach(wallet=>{
+smartMoneyWallets[wallet].predictions += 1;
+});
+displaySmartMoney();
+}
+
+return score;
+}
+
+function calculateTokenPumpScore(contract){
+let score = 0;
+if(createPairDetected[contract]) score += 10;
+if(liquidityAdded[contract]) score += 20;
+if(lpLockedContracts[contract]) score += 15;
+if(devSupplyData[contract]?.risk === "🟢 SAFE") score += 10;
+if(earlyWhaleSignals[contract]) score += 20;
+if(liquiditySpikeDetected[contract]) score += 15;
+if(preSpikeWhales[contract] && preSpikeWhales[contract].length >= 2) score += 10;
+if(score > 100) score = 100;
+pumpScores[contract] = score;
+displayTopTokens();
+if(score >= 80 && !pumpScoreAlerte.has(contract)){
+pumpScoreAlerte.add(contract);
+sendTelegram(`🚀 HIGH PUMP PROBABILITY
+━━━━━━━━━━━━━━━
+Token
+${contract}
+
+Score
+${score}/100
+
+Signals
+${liquiditySpikeDetected[contract]?"Liquidity spike":""}
+${earlyWhaleSignals[contract]?"Early whales":""}
+${lpLockedContracts[contract]?"LP locked":""}
+
+https://dexscreener.com/pulsechain/${contract}
+━━━━━━━━━━━━━━━`, "high");
+}
+}
+
+function displayTopTokens(){
+const el = document.getElementById("pumpScores");
+const sorted = Object.entries(pumpScores).sort((a,b)=>b[1]-a[1]).slice(0,10);
+if(sorted.length===0) return;
+el.innerHTML="";
+sorted.forEach(t=>{
+const contract=t[0];
+const score=t[1];
+let level,color;
+if(score>85){level="🚀 HIGH PUMP POTENTIAL";color="#22c55e";}
+else if(score>70){level="🔥 VERY GOOD";color="#f97316";}
+else if(score>50){level="🟡 GOOD";color="#eab308";}
+else if(score>30){level="⚠️ INCERTAIN";color="#94a3b8";}
+else{level="❌ LOW";color="#ef4444";}
+const div=document.createElement("div");
+div.className="whale-entry";
+div.innerHTML=`🚀 <strong>Score : <span style="color:${color}">${score}/100</span></strong> ${level}<br><a href="https://dexscreener.com/pulsechain/${contract}" target="_blank" style="color:#60a5fa;text-decoration:none;font-size:12px">${contract.slice(0,14)}...</a>`;
+el.appendChild(div);
+});
+}
+
+function trackWhaleBeforeSpike(tx, value, contract){
+if(!contract || value < WHALE_THRESHOLD) return;
+if(!preSpikeWhales[contract]) preSpikeWhales[contract] = [];
+preSpikeWhales[contract].push({wallet:tx.from, time:Date.now(), value:value});
+}
+
+function checkPreSpikeWhales(contract){
+const whales = preSpikeWhales[contract];
+if(!whales || whales.length === 0) return;
+const early = whales.filter(w => Date.now() - w.time < 300000);
+if(early.length >= 2 && !preSpikeDeclenche.has(contract)){
+preSpikeDeclenche.add(contract);
+triggerPreSpikeSignal(contract, early);
+}
+}
+
+function triggerPreSpikeSignal(contract, whales){
+sendTelegram(`🐋 WHALES AVANT LIQUIDITY SPIKE !
+━━━━━━━━━━━━━━━
+Token : ${contract}
+Whales :
+${whales.slice(0,3).map(w=>w.wallet).join("\n")}
+⚠️ Whales ont acheté AVANT le spike
+Très bon signal memecoin
+https://dexscreener.com/pulsechain/${contract}
+━━━━━━━━━━━━━━━`);
+displayPreSpike(contract, whales);
+calculateTokenPumpScore(contract);
+}
+
+function displayPreSpike(contract, whales){
+const el = document.getElementById("preSpikeWhales");
+if(el.innerHTML==="Scanning...") el.innerHTML="";
+const div = document.createElement("div");
+div.className="whale-entry";
+div.innerHTML=`🐋 <strong>Whales avant Liquidity Spike</strong><br><a href="https://dexscreener.com/pulsechain/${contract}" target="_blank" style="color:#60a5fa;text-decoration:none;font-size:12px">${contract.slice(0,14)}...</a><br>Whales (${whales.length}) :<br>${whales.slice(0,3).map(w=>`<a href="https://scan.pulsechain.com/address/${w.wallet}" target="_blank" style="color:#60a5fa;text-decoration:none;font-size:11px">${w.wallet.slice(0,14)}...</a>`).join("<br>")}<br><span style="color:#22c55e">🚀 Signal très bullish</span>`;
+el.prepend(div);
+}
+
+function trackLiquidityHistory(contract, liquidity){
+if(liquidity <= 0) return;
+if(!liquidityHistory[contract]){
+liquidityHistory[contract]={start:liquidity,last:liquidity,time:Date.now()};
+}else{
+liquidityHistory[contract].last = liquidity;
+checkLiquiditySpike(contract);
+}
+}
+
+function checkLiquiditySpike(contract){
+const data = liquidityHistory[contract];
+if(!data) return;
+const ratio = data.last / data.start;
+const timeDiff = Date.now() - data.time;
+if(timeDiff < 300000 && ratio > 2 && !liquiditySpikeDeclenche.has(contract)){
+liquiditySpikeDeclenche.add(contract);
+triggerLiquiditySpike(contract, ratio);
+}
+}
+
+function triggerLiquiditySpike(contract, ratio){
+liquiditySpikeDetected[contract] = true;
+checkPreSpikeWhales(contract);
+sendTelegram(`💧 LIQUIDITY SPIKE !
+━━━━━━━━━━━━━━━
+Token : ${contract}
+Liquidité x${ratio.toFixed(2)}
+⚠️ Forte entrée de capital
+Possible memecoin en lancement
+https://dexscreener.com/pulsechain/${contract}
+━━━━━━━━━━━━━━━`);
+displayLiquiditySpike(contract, ratio);
+calculateTokenPumpScore(contract);
+}
+
+function displayLiquiditySpike(contract, ratio){
+const el = document.getElementById("liquiditySpike");
+if(el.innerHTML==="Scanning...") el.innerHTML="";
+const div = document.createElement("div");
+div.className="whale-entry";
+div.innerHTML=`💧 <strong>Liquidity Spike x${ratio.toFixed(2)}</strong><br><a href="https://dexscreener.com/pulsechain/${contract}" target="_blank" style="color:#60a5fa;text-decoration:none;font-size:12px">${contract.slice(0,14)}...</a><br><span style="color:#22c55e">⚠️ Forte entrée de capital - possible lancement</span>`;
+el.prepend(div);
+}
+
+function trackLiquidityEvent(tx){
+const wallet = tx.from;
+liquidityEvents[wallet] = {time:Date.now(), whales:[]};
+}
+
+function trackEarlyWhales(tx,value){
+if(value < WHALE_THRESHOLD) return;
+const wallet = tx.from;
+Object.keys(liquidityEvents).forEach(dev=>{
+const event = liquidityEvents[dev];
+if(Date.now() - event.time < 30000){
+if(!event.whales.includes(wallet)){
+event.whales.push(wallet);
+}
+if(event.whales.length >= 3 && !earlyPumpDeclenche.has(dev)){
+earlyPumpDeclenche.add(dev);
+earlyWhaleSignals[dev] = true;
+triggerEarlyPump(dev, event.whales);
+}
+}
+});
+}
+
+function triggerEarlyPump(dev, whales){
+sendTelegram(`🚀 EARLY WHALE ENTRY !
+━━━━━━━━━━━━━━━
+Dev Wallet : ${dev}
+Whales détectées :
+${whales.slice(0,3).join("\n")}
+⚠️ Plusieurs whales achètent juste après la liquidité
+Possible pump imminent
+https://scan.pulsechain.com/address/${dev}
+━━━━━━━━━━━━━━━`, "high");
+displayEarlyWhales(dev, whales);
+}
+
+function displayEarlyWhales(dev, whales){
+const el = document.getElementById("earlyWhales");
+if(el.innerHTML==="Scanning...") el.innerHTML="";
+const div = document.createElement("div");
+div.className="whale-entry";
+div.innerHTML=`🚀 <strong>Early Whale Entry !</strong><br>Dev : <a href="https://scan.pulsechain.com/address/${dev}" target="_blank" style="color:#60a5fa;text-decoration:none;font-size:12px">${dev.slice(0,14)}...</a><br>Whales (${whales.length}) :<br>${whales.slice(0,3).map(w=>`<a href="https://scan.pulsechain.com/address/${w}" target="_blank" style="color:#60a5fa;text-decoration:none;font-size:11px">${w.slice(0,14)}...</a>`).join("<br>")}<br><span style="color:#22c55e">⚠️ Pump potentiel</span>`;
+el.prepend(div);
+}
+
+async function analyzeDevSupply(contract, creator){
+try{
+const res = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${contract}`);
+const data = await res.json();
+if(!data.pairs || data.pairs.length === 0) return;
+const pair = data.pairs[0];
+const supply = pair.fdv || 0;
+const liquidity = parseFloat(pair.liquidity?.usd || 0);
+let risk = "🟢 SAFE";
+if(supply > 0){
+const ratio = liquidity / supply;
+if(ratio < 0.02) risk = "🔴 RUG RISK";
+else if(ratio < 0.05) risk = "⚠️ HIGH DEV SUPPLY";
+else if(ratio < 0.1) risk = "🟡 MEDIUM";
+}
+devSupplyData[creator] = {contract, risk};
+displayDevRisk(creator, risk);
+trackLiquidityHistory(contract, liquidity);
+}catch(e){
+console.error("Dev supply error:",e);
+}
+}
+
+function displayDevRisk(creator, risk){
+const el = document.getElementById("insiderWallets");
+if(el.innerHTML==="Scanning...") el.innerHTML="";
+const couleur = risk.includes("SAFE") ? "#22c55e" : risk.includes("RUG") ? "#ef4444" : risk.includes("HIGH") ? "#f97316" : "#eab308";
+const div = document.createElement("div");
+div.className="whale-entry";
+div.innerHTML=`🔍 Dev Supply Analysé<br><a href="https://scan.pulsechain.com/address/${creator}" target="_blank" style="color:#60a5fa;text-decoration:none;font-size:12px">${creator.slice(0,14)}...</a><br><span style="color:${couleur};font-weight:bold">${risk}</span>`;
+el.prepend(div);
+}
+
+function detectLpLock(tx){
+if(!tx.to) return;
+const to = tx.to.toLowerCase();
+if(!LP_LOCK_ADDRESSES.includes(to)) return;
+liquidityLocks[tx.from] = {wallet:tx.from, time:Date.now(), locked:true};
+lpLockedContracts[tx.from] = true;
+// Associer le lock a tous les contrats crees par ce dev
+if(devWallets[tx.from]){
+Object.keys(createPairDetected).forEach(ct=>{
+lpLockedContracts[ct] = true;
+});
+}
+displayLpLock(tx.from);
+sendTelegram(`🔒 LP Lock détecté !
+Wallet : ${tx.from}`, "medium");
+}
+
+function displayLpLock(wallet){
+const el = document.getElementById("insiderWallets");
+if(el.innerHTML==="Scanning...") el.innerHTML="";
+const div = document.createElement("div");
+div.className="whale-entry";
+div.innerHTML=`🔒 <strong>LP Lock Détecté !</strong><br><a href="https://scan.pulsechain.com/address/${wallet}" target="_blank" style="color:#60a5fa;text-decoration:none;font-size:12px">${wallet}</a><br><span style="color:#22c55e">✅ Liquidité verrouillée - signal positif</span>`;
+el.prepend(div);
+}
+
+function trackTokenCreator(tx){
+if(!tx.creates) return;
+const wallet = tx.from;
+devWallets[wallet]={createdToken:true,time:Date.now(),pairs:0,liquidity:0,buys:0};
+}
+
+function trackCreatePair(tx){
+const wallet = tx.from;
+if(devWallets[wallet]) devWallets[wallet].pairs += 1;
+}
+
+function trackLiquidity(tx){
+const wallet = tx.from;
+if(devWallets[wallet]) devWallets[wallet].liquidity += 1;
+}
+
+function trackEarlyBuy(tx,value){
+const wallet = tx.from;
+if(!devWallets[wallet]) return;
+devWallets[wallet].buys += value;
+if(devWallets[wallet].pairs > 0){
+insiderWallets[wallet] = devWallets[wallet];
+displayInsiders();
+sendTelegram(`🧠 Insider Wallet : ${wallet}
+Achats : ${Math.round(value/1000000)}M PLS`, "medium");
+}
+}
+
+function displayInsiders(){
+const el = document.getElementById("insiderWallets");
+const sorted = Object.entries(insiderWallets)
+.sort((a,b)=>b[1].buys-a[1].buys)
+.slice(0,5);
+if(sorted.length===0) return;
+el.innerHTML="";
+sorted.forEach(w=>{
+const wallet=w[0];
+const data=w[1];
+const div=document.createElement("div");
+div.className="whale-entry";
+const lockStatus = liquidityLocks[wallet] ? "🔒 LP Locké" : "⚠️ LP Unlocked";
+const risk = devSupplyData[wallet]?.risk || "❓ Non analysé";
+const riskColor = risk.includes("SAFE") ? "#22c55e" : risk.includes("RUG") ? "#ef4444" : risk.includes("HIGH") ? "#f97316" : "#eab308";
+div.innerHTML=`🧠 Insider Wallet<br><a href="https://scan.pulsechain.com/address/${wallet}" target="_blank" style="color:#60a5fa;text-decoration:none;font-size:12px">${wallet}</a><br>Tokens créés : ${data.pairs} | Liquidité : ${data.liquidity}<br>Achats : <span style="color:#22c55e">${Math.round(data.buys/1000000)}M PLS</span><br>${lockStatus} | <span style="color:${riskColor}">${risk}</span>`;
+el.appendChild(div);
+});
+}
+
+function trackSmartMoney(tx,value){
+if(value < WHALE_THRESHOLD) return;
+const wallet = tx.from;
+if(!smartMoneyWallets[wallet]){
+smartMoneyWallets[wallet]={volume:0,predictions:0,lastSeen:Date.now()};
+}
+smartMoneyWallets[wallet].volume += value;
+smartMoneyWallets[wallet].lastSeen = Date.now();
+}
+
+function displaySmartMoney(){
+const el = document.getElementById("smartMoney");
+const sorted = Object.entries(smartMoneyWallets)
+.sort((a,b)=>b[1].predictions-a[1].predictions)
+.slice(0,5);
+if(sorted.length === 0) return;
+el.innerHTML="";
+sorted.forEach(w=>{
+const wallet=w[0];
+const data=w[1];
+const div=document.createElement("div");
+div.className="whale-entry";
+div.innerHTML=`🧠 Smart Money<br><a href="https://scan.pulsechain.com/address/${wallet}" target="_blank" style="color:#60a5fa;text-decoration:none;font-size:12px">${wallet}</a><br>Prédictions : <span style="color:#22c55e">${data.predictions}</span> | Volume : ${Math.round(data.volume/1000000)}M PLS`;
+el.appendChild(div);
+});
+}
+
+
+// Signature exacte de l'event Swap(address,uint256,uint256,uint256,uint256,address)
+const SWAP_TOPIC = "0xd78ad95fa46c994b6551d0da85fc275fe613ce37657fb8d5e3d130840159d822";
+const WPLS_ADDRESS = "0xa1077a294dde1b09bb078844df40758a5d0f9a27"; // WPLS
+
+async function getSwapLogs(fromBlock, toBlock){
+try{
+const logs = await rpc("eth_getLogs",[{
+fromBlock: "0x"+fromBlock.toString(16),
+toBlock: "0x"+toBlock.toString(16),
+topics: [SWAP_TOPIC]
+}]);
+return logs || [];
+}catch(e){
+console.error("getLogs error:",e);
+return [];
+}
+}
+
+// Cache des pools pour eviter de refaire les appels RPC
+const poolTokenCache = {};
+
+async function getPoolTokens(poolAddress){
+if(poolTokenCache[poolAddress]) return poolTokenCache[poolAddress];
+try{
+// token0() = 0x0dfe1681, token1() = 0xd21220a7
+const [t0, t1] = await Promise.all([
+rpc("eth_call",[{to:poolAddress, data:"0x0dfe1681"},"latest"]),
+rpc("eth_call",[{to:poolAddress, data:"0xd21220a7"},"latest"])
+]);
+const token0 = "0x"+t0.slice(26).toLowerCase();
+const token1 = "0x"+t1.slice(26).toLowerCase();
+poolTokenCache[poolAddress] = {token0, token1};
+return {token0, token1};
+}catch(e){
+return null;
+}
+}
+
+function decodeSwap(log){
+const data = log.data.slice(2);
+return {
+amount0In:  parseInt(data.slice(0,64),16),
+amount1In:  parseInt(data.slice(64,128),16),
+amount0Out: parseInt(data.slice(128,192),16),
+amount1Out: parseInt(data.slice(192,256),16),
+pool: log.address,
+tx: log.transactionHash,
+from: log.topics.length > 1 ? "0x"+log.topics[1].slice(26) : "unknown"
+};
+}
+
+async function scanSwapLogs(latestBlock){
+const logs = await getSwapLogs(latestBlock - BLOCK_LOOKBACK, latestBlock);
+if(!logs.length) return;
+
+for(const log of logs){
+const swap = decodeSwap(log);
+
+// Recuperer les tokens de la pool pour determiner BUY/SELL correctement
+const tokens = await getPoolTokens(swap.pool);
+let type = "buy";
+let amount = 0;
+
+if(tokens){
+const wplsIsToken0 = tokens.token0 === WPLS_ADDRESS;
+if(wplsIsToken0){
+// PLS = token0 : amount0In > 0 = on envoie PLS = BUY autre token
+type = swap.amount0In > 0 ? "buy" : "sell";
+amount = swap.amount0In > 0 ? swap.amount0In : swap.amount0Out;
+}else{
+// PLS = token1 : amount1In > 0 = on envoie PLS = BUY autre token
+type = swap.amount1In > 0 ? "buy" : "sell";
+amount = swap.amount1In > 0 ? swap.amount1In : swap.amount1Out;
+}
+}else{
+// Fallback approximatif
+if(swap.amount0In > 0 && swap.amount1Out > 0){ type="sell"; amount=swap.amount0In; }
+else{ type="buy"; amount=swap.amount1In||swap.amount0Out; }
+}
+
+const valueEth = amount / 1e18;
+if(valueEth < WHALE_THRESHOLD) return;
+
+// Afficher dans whale activity
+const whalesEl = document.getElementById("whales");
+if(whalesEl.innerHTML === "Chargement...") whalesEl.innerHTML = "";
+const div = document.createElement("div");
+div.className = "whale-entry";
+const color = type === "buy" ? "#22c55e" : "#ef4444";
+const icon = type === "buy" ? "🟢 SWAP BUY" : "🔴 SWAP SELL";
+div.innerHTML = `<span style="color:${color}">${icon} ${Math.round(valueEth/1000000)}M PLS</span><br>
+Pool : <a href="https://scan.pulsechain.com/address/${swap.pool}" target="_blank" style="color:#60a5fa;text-decoration:none;font-size:11px">${swap.pool.slice(0,14)}...</a><br>
+Tx : <a href="https://scan.pulsechain.com/tx/${swap.tx}" target="_blank" style="color:#60a5fa;text-decoration:none;font-size:11px">${swap.tx.slice(0,14)}...</a>`;
+whalesEl.prepend(div);
+
+// Mettre a jour totalFlow
+if(type === "buy") totalFlow += valueEth;
+else totalVolume += valueEth;
+
+// Alerte Telegram si gros swap
+if(valueEth > 1000000000 && !alertesEnvoyees.has(swap.tx)){
+alertesEnvoyees.add(swap.tx);
+const net = totalFlow - totalVolume;
+sendTelegram(`🐋 WHALE SWAP ${type.toUpperCase()}
+━━━━━━━━━━━━━━━
+Montant : ${Math.round(valueEth/1000000)}M PLS
+Pool : ${swap.pool}
+Tx : ${swap.tx}
+Prix PLS : $${plsPrice}
+Flux Net : ${Math.round(net/1000000)}M PLS
+━━━━━━━━━━━━━━━`, "high");
+}
+});
+
+updateStats();
+}
+
 async function scanWhales(){
 try{
 const latestBlock = await getLatestBlock();
+if(latestBlock === lastScannedBlock) return;
+lastScannedBlock = latestBlock;
 console.log("Bloc:",latestBlock);
 
 let found = 0;
 
 for(let i=0;i<BLOCK_LOOKBACK;i++){
-const block = await getBlock(latestBlock-i);
+const blockNum = latestBlock-i;
+if(blockNum <= lastScannedBlock - BLOCK_LOOKBACK) continue;
+const block = await getBlock(blockNum);
 if(!block || !block.transactions) continue;
 
 console.log(`Bloc ${latestBlock-i} - Transactions:`,block.transactions.length);
 
-block.transactions.forEach(tx=>{
-const value = parseInt(tx.value,16)/1e18;
+for(const tx of block.transactions){
+// Appels PRO sur toutes les tx (swaps, liquidite, nouveaux tokens)
+detectLargeSwaps(tx, parseInt(tx.value,16)/1e18);
+detectLiquidity(tx);
+detectNewPair(tx);
+detectCreatePair(tx);
+trackSmartMoney(tx, parseInt(tx.value,16)/1e18);
+trackTokenCreator(tx);
+trackCreatePair(tx);
+trackLiquidity(tx);
+trackEarlyBuy(tx, parseInt(tx.value,16)/1e18);
+detectLpLock(tx);
+trackEarlyWhales(tx, parseInt(tx.value,16)/1e18);
 
-if(value>WHALE_THRESHOLD){
+// Filtre whale : transferts simples uniquement
+if(tx.input !== "0x") continue;
+if(!tx.from || !tx.to) continue;
+const value = parseInt(tx.value,16)/1e18;
+if(value < WHALE_THRESHOLD) continue;
+if(whaleWallets[tx.from] && whaleWallets[tx.from].transactions > 30) continue;
+
 found++;
-let type="buy";
-if(Math.random()>0.5){
-type="sell";
-totalSell+=value;
-}else{
-totalBuy+=value;
-}
+
+// Sur blockchain pure on ne peut pas distinguer buy/sell avec certitude
+// On traite tout comme transfer et on incremente totalBuy
+const type = "buy";
+totalFlow += value;
 
 displayWhale(tx,value,type);
+
+// Whale Burst
+whaleBurst.push({amount:value,time:Date.now()});
+whaleBurst = whaleBurst.filter(t=>Date.now()-t.time<10*60*1000);
+if(whaleBurst.length > 200) whaleBurst.shift();
+const burstTotal = whaleBurst.reduce((s,t)=>s+t.amount,0);
+if(burstTotal>2000000000 && Date.now()-lastBurstAlert>30*60*1000){
+lastBurstAlert=Date.now();
+sendTelegram(`🔥 Whale Burst : ${Math.round(burstTotal/1000000)}M PLS en 10min`, "medium");
+}
+
+// Whale Accumulation
+if(type==="buy"){
+whaleBuysHistory.push({amount:value,time:Date.now()});
+whaleBuysHistory=whaleBuysHistory.filter(t=>Date.now()-t.time<20*60*1000);
+if(whaleBuysHistory.length > 200) whaleBuysHistory.shift();
+const accumTotal=whaleBuysHistory.reduce((s,t)=>s+t.amount,0);
+if(accumTotal>1500000000 && Date.now()-lastAccumulationAlert>30*60*1000){
+lastAccumulationAlert=Date.now();
+sendTelegram(`🚀 Whale Accumulation : ${Math.round(accumTotal/1000000)}M PLS en 20min`, "medium");
+}
+}
+
 trackSmartWhales(tx,value);
 displaySmartWhales();
 updateWhaleWatchlist(tx,value);
-detectSmartWhales(tx,value);
+detectSmartWhales(tx,value,type);
 sauvegarderWhale(type,value,tx.from);
 
-if(peutEnvoyerAlerte(tx.hash)){
-const net=totalBuy-totalSell;
-let signal,explication;
-if(net>1000000000){signal="🟢 Accumulation";explication="Les whales achètent plus qu'elles ne vendent.";}
-else if(net<-1000000000){signal="🔴 Distribution";explication="Les whales vendent beaucoup.";}
-else{signal="🟡 Neutre";explication="Le marché est stable.";}
-const msg=`🐋 Alerte Whale détectée !
+
+activityScore = Math.min(block.transactions.length * 2, 30);
+
+if(peutEnvoyerAlerte(tx.hash) && value > 1000000000){
+const net=totalFlow-totalVolume;
+let signal;
+if(net>1000000000) signal="🟢 Accumulation";
+else if(net<-1000000000) signal="🔴 Distribution";
+else signal="🟡 Neutre";
+const priority = value > 2000000000 ? "high" : "medium";
+const msg=`🐋 ${value > 2000000000 ? "PLS MEGA WHALE" : "WHALE ALERT"}
 ━━━━━━━━━━━━━━━
-Type : ${type==="buy"?"🟢 ACHAT":"🔴 VENTE"}
-Montant : ${Math.round(value/1000000)}M PLS
-Portefeuille : ${tx.from}
+Transaction : ${Math.round(value/1000000)}M PLS
+Wallet : ${tx.from}
 Bloc : ${parseInt(tx.blockNumber,16)}
-Prix PLS : $${plsPrice}
+━━━━━━━━━━━━━━━
+Market Context
+Whale Flow : ${Math.round(net/1000000)}M PLS
 Signal : ${signal}
-${explication}
+Prix PLS : $${plsPrice}
 ━━━━━━━━━━━━━━━`;
-sendTelegram(msg);
+sendTelegram(msg, priority);
 }
 }
-});
 }
 
 if(found===0){
@@ -392,6 +1245,7 @@ document.getElementById("whales").innerHTML="<div style='color:#94a3b8'>Aucune t
 }
 
 updateStats();
+await scanSwapLogs(latestBlock);
 
 }catch(e){
 console.error("Erreur scan:",e);
@@ -399,18 +1253,22 @@ document.getElementById("whales").innerHTML="<div style='color:#ef4444'>Erreur R
 }
 }
 
-getPlsPrice().then(()=>{
+monitorPLSMarket().then(()=>{
 sendTelegram(`🐋 Détecteur de Whale démarré
 ━━━━━━━━━━━━━━━
 Prix PLS : $${plsPrice}
 Surveillance active 24h/24
 Alertes en temps réel
-━━━━━━━━━━━━━━━`);
+━━━━━━━━━━━━━━━`, "medium");
 });
 
+monitorPLSMarket();
+monitorPLSBurn();
+setInterval(monitorPLSMarket, 60000);
+setInterval(monitorPLSBurn, 30000);
 setInterval(getPlsPrice, 5*60*1000);
 setInterval(analyserTendance, 60*60*1000);
-setInterval(calculatePumpScore, 10000);
+setInterval(calculatePumpScore, 30000);
 
 let pumpCandidates = [];
 
@@ -425,6 +1283,8 @@ if(token.newToken) score += 10;
 
 if(score >= 60){
 token.score = score;
+if(pumpCandidates.length > 50) pumpCandidates.shift();
+pumpCandidates.push(token);
 addPumpCandidate(token);
 }
 }
@@ -459,6 +1319,11 @@ el.prepend(div);
 let whaleWatchlist = {};
 
 function updateWhaleWatchlist(tx,value){
+if(value < WHALE_THRESHOLD) return;
+if(Object.keys(whaleWatchlist).length > 100){
+const oldest = Object.entries(whaleWatchlist).sort((a,b)=>a[1].lastActivity-b[1].lastActivity)[0][0];
+delete whaleWatchlist[oldest];
+}
 const wallet = tx.from;
 if(!whaleWatchlist[wallet]){
 whaleWatchlist[wallet]={volume:0,transactions:0,lastActivity:Date.now()};
@@ -488,13 +1353,17 @@ el.appendChild(div);
 
 let smartWhalesData = {};
 
-function detectSmartWhales(tx,value){
+function detectSmartWhales(tx,value,type){
 const wallet = tx.from;
+if(Object.keys(smartWhalesData).length > 100){
+const oldest = Object.entries(smartWhalesData).sort((a,b)=>a[1].activity-b[1].activity)[0][0];
+delete smartWhalesData[oldest];
+}
 if(!smartWhalesData[wallet]){
 smartWhalesData[wallet]={buys:0,activity:0};
 }
 smartWhalesData[wallet].activity += 1;
-if(Math.random()>0.4){
+if(type === "buy"){
 smartWhalesData[wallet].buys += value;
 }
 displaySmartWhaleDetector();
@@ -519,6 +1388,7 @@ el.appendChild(div);
 let whaleWallets = {};
 
 function trackSmartWhales(tx,value){
+if(value < WHALE_THRESHOLD) return;
 const wallet = tx.from;
 if(!whaleWallets[wallet]){
 whaleWallets[wallet]={volume:0,transactions:0};
@@ -549,8 +1419,8 @@ el.appendChild(div);
 let earlyPumpScore = 0;
 
 function calculateEarlyPump(){
-let whaleNet = totalBuy - totalSell;
-let tokenActivity = detectedTokens.length;
+let whaleNet = totalFlow - totalVolume;
+let tokenActivity = detectedTokens.size;
 let score = 0;
 
 if(whaleNet > 1000000000) score += 40;
@@ -559,7 +1429,7 @@ else if(whaleNet > 500000000) score += 25;
 if(tokenActivity > 3) score += 20;
 if(tokenActivity > 6) score += 30;
 
-score += Math.floor(Math.random()*20);
+score += Math.min(whaleBuysHistory.length * 5, 20);
 if(score > 100) score = 100;
 
 earlyPumpScore = score;
@@ -606,13 +1476,16 @@ const detectedTokens = new Map(); // adresse -> derniere liquidite connue
 
 async function scanMemecoins(){
 try{
-const block = await getLatestBlock();
-const blockData = await getBlock(block);
-if(!blockData || !blockData.transactions) return;
+const latestBlock = await getLatestBlock();
+
+for(let i=0;i<BLOCK_LOOKBACK;i++){
+const blockData = await getBlock(latestBlock-i);
+if(!blockData || !blockData.transactions) continue;
 
 for(const tx of blockData.transactions){
 if(!tx.to){
-const contractAddress = tx.hash.slice(0,42);
+if(!tx.creates) continue;
+const contractAddress = tx.creates;
 try{
 const res = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${contractAddress}`);
 const data = await res.json();
@@ -622,24 +1495,27 @@ const derniereLiquidite = detectedTokens.get(contractAddress) || 0;
 const hausseSignificative = liquidity > 3000 && liquidity > derniereLiquidite * 1.5;
 
 if(!detectedTokens.has(contractAddress) || hausseSignificative){
+const isNewToken = !detectedTokens.has(contractAddress);
 detectedTokens.set(contractAddress, liquidity);
 displayMemecoin(contractAddress);
 if(pair){
+trackLiquidityHistory(contractAddress, liquidity);
 evaluateToken({
 name: pair.baseToken?.symbol || contractAddress.slice(0,8),
 contract: contractAddress,
 liquidity: liquidity,
 volume: parseFloat(pair.volume?.h24 || 0),
 transactions: (pair.txns?.h24?.buys || 0) + (pair.txns?.h24?.sells || 0),
-whaleActivity: totalBuy > 500000000,
-newToken: !detectedTokens.has(contractAddress),
-lpLocked: false,
+whaleActivity: totalFlow > 500000000,
+newToken: isNewToken,
+lpLocked: !!liquidityLocks[contractAddress],
 volumeGrowth: parseFloat(pair.priceChange?.h1 || 0)
 });
 }
 }
 }catch(e){
 console.error("DexScreener erreur:",e);
+}
 }
 }
 }
@@ -663,9 +1539,10 @@ el.prepend(div);
 
 scanWhales();
 scanMemecoins();
-setInterval(scanWhales,10000);
-setInterval(scanMemecoins,15000);
-setInterval(calculateEarlyPump,12000);
+setInterval(scanWhales,20000);
+setInterval(scanMemecoins,30000);
+setInterval(calculateEarlyPump,30000);
+setInterval(()=>getLatestBlock().then(b=>scanSwapLogs(b)),40000);
 
 </script>
 </body>
