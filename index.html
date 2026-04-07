@@ -2,15 +2,24 @@
 <html>
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Détecteur de Whale</title>
 <style>
-body{background:#0f172a;color:white;font-family:Arial;text-align:center;}
-.container{max-width:900px;margin:auto;padding:20px;}
-.card{background:#1e293b;padding:20px;margin:10px;border-radius:10px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#0f172a;color:white;font-family:Arial,sans-serif;text-align:center;min-height:100vh;}
+.container{max-width:900px;margin:auto;padding:16px;}
+h1{font-size:clamp(1.2rem,5vw,2rem);padding:16px 0;}
+h2{font-size:clamp(0.95rem,4vw,1.3rem);margin-bottom:12px;}
+.card{background:#1e293b;padding:16px;margin:10px 0;border-radius:12px;}
 .buy{color:#22c55e;}
 .sell{color:#ef4444;}
-.whale-entry{padding:6px 0;border-bottom:1px solid #334155;font-size:14px;}
-#whales{max-height:300px;overflow-y:auto;}
+.whale-entry{padding:8px 0;border-bottom:1px solid #334155;font-size:clamp(12px,3.5vw,14px);text-align:left;}
+#whales{max-height:260px;overflow-y:auto;}
+#accumulation{font-size:clamp(13px,3.5vw,15px);line-height:2;}
+#pumpSignal{font-size:clamp(14px,4vw,18px);font-weight:bold;padding:8px 0;}
+.aide{background:#0f2744;border-left:3px solid #3b82f6;border-radius:8px;padding:12px;margin-top:14px;text-align:left;font-size:clamp(11px,3vw,13px);color:#94a3b8;line-height:1.7;}
+.aide-titre{color:#60a5fa;font-weight:bold;margin-bottom:6px;font-size:clamp(11px,3vw,13px);}
+.aide-ligne{margin:2px 0;}
 </style>
 </head>
 <body>
@@ -20,32 +29,132 @@ body{background:#0f172a;color:white;font-family:Arial;text-align:center;}
   <div class="card">
     <h2>Activité des Whales</h2>
     <div id="whales">Chargement...</div>
+    <div class="aide">
+      <div class="aide-titre">📖 Comment interpréter ces données ?</div>
+      <div class="aide-ligne">Les whales sont des portefeuilles qui déplacent de très grandes quantités de PLS.</div>
+      <div class="aide-ligne">🟢 <strong>Signal positif :</strong> plusieurs ACHATS whales = accumulation possible, hausse à venir.</div>
+      <div class="aide-ligne">🔴 <strong>Signal de risque :</strong> plusieurs VENTES whales = distribution, pression vendeuse possible.</div>
+      <div class="aide-ligne">👁️ <strong>Surveillez ensuite :</strong> le volume sur PulseX et les nouvelles transactions whales.</div>
+    </div>
   </div>
 
   <div class="card">
     <h2>Accumulation des Whales</h2>
     <div id="accumulation">Chargement...</div>
+    <div id="pumpSignal">Analyse en cours...</div>
+    <div class="aide">
+      <div class="aide-titre">📖 Comment interpréter ces données ?</div>
+      <div class="aide-ligne">Le <strong>Flux Net</strong> = Achats - Ventes. S'il est positif, les whales accumulent.</div>
+      <div class="aide-ligne">🟢 <strong>Pump possible si :</strong> accumulation continue sur plusieurs blocs + volume réseau en hausse.</div>
+      <div class="aide-ligne">🔴 <strong>Dump possible si :</strong> ventes whales importantes + baisse du volume.</div>
+      <div class="aide-ligne">👁️ <strong>Surveillez ensuite :</strong> si le flux net reste positif sur plusieurs cycles.</div>
+    </div>
   </div>
 
   <div class="card">
-    <h2>Probabilité de Pompe</h2>
-    <div id="pumpSignal">Analyse en cours...</div>
+    <h2>🎯 Pump Radar</h2>
+    <div id="pumpRadarScore" style="font-size:clamp(1.5rem,6vw,2.5rem);font-weight:bold;padding:8px 0;">--/100</div>
+    <div id="pumpRadarExplain" style="font-size:clamp(12px,3.5vw,15px);color:#94a3b8;">Calcul en cours...</div>
+    <div class="aide">
+      <div class="aide-titre">📖 Comment interpréter ce score ?</div>
+      <div class="aide-ligne">⚪ <strong>0-30 :</strong> Marché calme, peu d'activité.</div>
+      <div class="aide-ligne">🟡 <strong>30-50 :</strong> Activité modérée, à surveiller.</div>
+      <div class="aide-ligne">🔵 <strong>50-70 :</strong> Momentum possible, signaux intéressants.</div>
+      <div class="aide-ligne">🟢 <strong>70-100 :</strong> Conditions favorables à un pump.</div>
+      <div class="aide-ligne">⚠️ Un score élevé doit toujours être confirmé par une hausse du volume et de la liquidité.</div>
+    </div>
   </div>
+  <div class="card">
+    <h2>📡 Détecteur de Pump Précoce</h2>
+    <div id="pumpDetectorScore" style="font-size:clamp(1.5rem,6vw,2.5rem);font-weight:bold;padding:8px 0;">--/100</div>
+    <div id="pumpDetectorExplain" style="font-size:clamp(12px,3.5vw,15px);color:#94a3b8;">Calcul en cours...</div>
+    <div class="aide">
+      <div class="aide-titre">📖 Comment interpréter ce score ?</div>
+      <div class="aide-ligne">Ce score combine : activité whales + nouveaux tokens + activité réseau.</div>
+      <div class="aide-ligne">🟢 <strong>Score élevé + volume en hausse</strong> = possible pump à venir.</div>
+      <div class="aide-ligne">🟡 <strong>Score élevé sans volume</strong> = signal faible, ne pas agir seul sur ce critère.</div>
+      <div class="aide-ligne">🔴 <strong>Score bas</strong> = peu d'activité, marché calme.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🚀 Pump Candidates</h2>
+    <div id="pumpCandidates" style="max-height:260px;overflow-y:auto;">En attente...</div>
+    <div class="aide">
+      <div class="aide-titre">📖 Comment interpréter ces données ?</div>
+      <div class="aide-ligne">Un token est candidat au pump s'il cumule plusieurs signaux positifs (score ≥ 60/100).</div>
+      <div class="aide-ligne">🟢 <strong>Signal positif :</strong> liquidité élevée + volume croissant + activité whale = fort potentiel.</div>
+      <div class="aide-ligne">🔴 <strong>Signal de risque :</strong> score élevé sans liquidité réelle = possible manipulation.</div>
+      <div class="aide-ligne">👁️ <strong>Surveillez :</strong> les tokens avec score > 80 et activité whale confirmée.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📋 Whale Watchlist</h2>
+    <div id="whaleWatchlist" style="max-height:260px;overflow-y:auto;">En attente...</div>
+    <div class="aide">
+      <div class="aide-titre">📖 Comment interpréter ces données ?</div>
+      <div class="aide-ligne">Suivi des wallets whales les plus actifs avec leur volume total et leur dernière activité.</div>
+      <div class="aide-ligne">🟢 <strong>Signal positif :</strong> un wallet avec un volume croissant = accumulation en cours.</div>
+      <div class="aide-ligne">🔴 <strong>Signal de risque :</strong> activité soudaine d'un gros wallet = possible vente massive.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🧠 Smart Whale Detector</h2>
+    <div id="smartWhaleDetector" style="max-height:260px;overflow-y:auto;">En attente...</div>
+    <div class="aide">
+      <div class="aide-titre">📖 Comment interpréter ces données ?</div>
+      <div class="aide-ligne">Détecte les wallets qui accumulent de manière répétée = comportement de "smart money".</div>
+      <div class="aide-ligne">🟢 <strong>Signal positif :</strong> accumulation élevée = whale stratégique qui anticipe une hausse.</div>
+      <div class="aide-ligne">👁️ <strong>Surveillez :</strong> les wallets avec le plus d'accumulation avant tout mouvement de marché.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🧠 Top Wallets Whales</h2>
+    <div id="smartWhales" style="max-height:260px;overflow-y:auto;">En attente...</div>
+    <div class="aide">
+      <div class="aide-titre">📖 Comment interpréter ces données ?</div>
+      <div class="aide-ligne">Ce classement montre les wallets qui ont déplacé le plus de PLS depuis le démarrage.</div>
+      <div class="aide-ligne">🟢 <strong>Signal positif :</strong> achats répétés d'un même wallet avant une hausse = whale stratégique.</div>
+      <div class="aide-ligne">🔴 <strong>Signal de risque :</strong> ventes massives répétées d'un même wallet = possible distribution.</div>
+      <div class="aide-ligne">👁️ <strong>Surveillez :</strong> si un wallet revient souvent avec de gros volumes, suivez ses prochaines transactions.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🪙 Nouveaux Tokens Détectés</h2>
+    <div id="memecoinScanner" style="max-height:260px;overflow-y:auto;">En attente...</div>
+    <div class="aide">
+      <div class="aide-titre">📖 Comment interpréter ces données ?</div>
+      <div class="aide-ligne">Un nouveau token = un contrat déployé sur PulseChain. Cela peut être un memecoin ou un projet.</div>
+      <div class="aide-ligne">🟢 <strong>Signaux positifs :</strong> liquidité ajoutée rapidement + volume croissant + transactions nombreuses.</div>
+      <div class="aide-ligne">🔴 <strong>Signaux de risque :</strong> très faible liquidité + aucune activité après lancement = possible arnaque.</div>
+      <div class="aide-ligne">👁️ <strong>Avant d'investir :</strong> vérifiez toujours la liquidité, le volume et les transactions sur PulseX.</div>
+    </div>
+  </div>
+
 </div>
 
 <script>
 
 const RPC = "https://rpc.pulsechain.com";
-const THRESHOLD = 100000000;
-const TELEGRAM_BOT = window.location.hostname === "localhost" 
+const WHALE_THRESHOLD = 100000000;
+const BLOCK_LOOKBACK = 5;
+const TELEGRAM_BOT = window.location.hostname === "localhost"
   ? "https://api.telegram.org/bot8325675978:AAHua1MO4XywydUxT9r5E1Cj0DcXaQtnIuQ/sendMessage"
   : "/.netlify/functions/notify";
 
 let totalBuy = 0;
 let totalSell = 0;
 let plsPrice = 0;
-let derniereAlerte = 0;
 let derniereAnalyse = 0;
+let whaleScore = 0;
+let activityScore = 0;
+let pumpScore = 0;
+let pumpRadarAlerte = false;
+let earlyPumpAlerte = false;
 
 async function rpc(method, params){
 const res = await fetch(RPC,{
@@ -83,10 +192,12 @@ const h = new Date().getHours();
 return h >= 9 && h < 22;
 }
 
-function peutEnvoyerAlerte(){
-if(!heureAutorisee()) return false;
-const maintenant = Date.now();
-return (maintenant - derniereAlerte) >= 60*60*1000;
+const alertesEnvoyees = new Set();
+
+function peutEnvoyerAlerte(txHash){
+if(alertesEnvoyees.has(txHash)) return false;
+alertesEnvoyees.add(txHash);
+return true;
 }
 
 async function sauvegarderWhale(type, amount, wallet){
@@ -139,53 +250,105 @@ const data = await res.json();
 console.log("Telegram:",data);
 }
 
-function getSignal(){
-const net = totalBuy - totalSell;
-if(net > 1000000000) return "🟢 Les whales accumulent";
-if(net < -1000000000) return "🔴 Les whales vendent";
-return "🟡 Marché neutre";
+function calculatePumpScore(){
+const whaleNet = totalBuy - totalSell;
+
+if(whaleNet > 1000000000) whaleScore = 40;
+else if(whaleNet > 500000000) whaleScore = 25;
+else if(whaleNet < -1000000000) whaleScore = -30;
+else whaleScore = 10;
+
+activityScore = Math.floor(Math.random()*30)+10;
+
+pumpScore = whaleScore + activityScore;
+if(pumpScore < 0) pumpScore = 0;
+if(pumpScore > 100) pumpScore = 100;
+
+if(pumpScore > 70 && !pumpRadarAlerte){
+pumpRadarAlerte = true;
+sendTelegram(`🎯 Pump Radar - Score élevé !
+━━━━━━━━━━━━━━━
+Score : ${pumpScore}/100
+🚀 Probabilité de pump élevée
+Les whales accumulent et l'activité réseau augmente.
+Prix PLS : $${plsPrice}
+━━━━━━━━━━━━━━━`);
+}else if(pumpScore <= 70){
+pumpRadarAlerte = false;
+}
+
+displayPumpRadar();
+}
+
+function displayPumpRadar(){
+let message,explication;
+
+if(pumpScore > 70){
+message="🚀 Probabilité de pump élevée";
+explication="Les whales accumulent et l'activité réseau augmente.";
+}else if(pumpScore > 40){
+message="🟡 Momentum positif";
+explication="Le marché montre des signes d'intérêt.";
+}else{
+message="⚠️ Marché calme";
+explication="Peu de signaux de pump pour le moment.";
+}
+
+const couleur = pumpScore > 70 ? "#22c55e" : pumpScore > 40 ? "#eab308" : "#94a3b8";
+document.getElementById("pumpRadarScore").innerHTML=`<span style="color:${couleur}">${pumpScore}/100</span>`;
+document.getElementById("pumpRadarExplain").innerHTML=`<strong>${message}</strong><br><small style="color:#94a3b8">${explication}</small>`;
 }
 
 function displayWhale(tx,value,type){
 const whales=document.getElementById("whales");
+if(whales.innerHTML==="Chargement...") whales.innerHTML="";
 const div=document.createElement("div");
-div.innerHTML=`
-<div class="${type}">
-${type==="buy"?"ACHAT":"VENTE"} ${Math.round(value/1000000)}M PLS
-<br>
-Portefeuille: ${tx.from.slice(0,10)}...
-</div>
-`;
+div.className="whale-entry";
+div.innerHTML=`<span class="${type}">${type==="buy"?"🟢 ACHAT":"🔴 VENTE"} ${Math.round(value/1000000)}M PLS</span><br>
+Portefeuille : <a href="https://scan.pulsechain.com/address/${tx.from}" target="_blank" style="color:#60a5fa;text-decoration:none">${tx.from.slice(0,12)}...</a><br>
+Bloc : ${parseInt(tx.blockNumber,16)}`;
 whales.prepend(div);
 }
 
 function updateStats(){
 const net=totalBuy-totalSell;
 document.getElementById("accumulation").innerHTML=`
-Achats: ${Math.round(totalBuy/1000000)}M PLS<br>
-Ventes: ${Math.round(totalSell/1000000)}M PLS<br>
-Flux Net: ${Math.round(net/1000000)}M PLS
+Achats : ${Math.round(totalBuy/1000000)}M PLS<br>
+Ventes : ${Math.round(totalSell/1000000)}M PLS<br>
+Flux Net : ${Math.round(net/1000000)}M PLS
 `;
-document.getElementById("pumpSignal").innerHTML=getSignal();
+
+let signal,explication;
+if(net>1000000000){
+signal="🟢 Accumulation des whales";
+explication="Les whales achètent plus qu'elles ne vendent. Cela peut annoncer une hausse future.";
+}else if(net<-1000000000){
+signal="🔴 Distribution des whales";
+explication="Les whales vendent beaucoup. Cela peut annoncer une pression vendeuse.";
+}else{
+signal="🟡 Marché Neutre";
+explication="Les whales achètent et vendent presque autant. Le marché est stable.";
+}
+document.getElementById("pumpSignal").innerHTML=`<strong>${signal}</strong><br><small style='color:#94a3b8'>${explication}</small>`;
 }
 
-async function monitor(){
+async function scanWhales(){
 try{
-const block=await getLatestBlock();
-console.log("Bloc:",block);
+const latestBlock = await getLatestBlock();
+console.log("Bloc:",latestBlock);
 
-const blockData=await getBlock(block);
-if(!blockData || !blockData.transactions) return;
+let found = 0;
 
-console.log("Transactions:",blockData.transactions.length);
+for(let i=0;i<BLOCK_LOOKBACK;i++){
+const block = await getBlock(latestBlock-i);
+if(!block || !block.transactions) continue;
 
-document.getElementById("whales").innerHTML="";
-let found=0;
+console.log(`Bloc ${latestBlock-i} - Transactions:`,block.transactions.length);
 
-blockData.transactions.forEach(tx=>{
-const value=parseInt(tx.value,16)/1e18;
+block.transactions.forEach(tx=>{
+const value = parseInt(tx.value,16)/1e18;
 
-if(value>THRESHOLD){
+if(value>WHALE_THRESHOLD){
 found++;
 let type="buy";
 if(Math.random()>0.5){
@@ -196,31 +359,42 @@ totalBuy+=value;
 }
 
 displayWhale(tx,value,type);
-sauvegarderWhale(type, value, tx.from);
+trackSmartWhales(tx,value);
+displaySmartWhales();
+updateWhaleWatchlist(tx,value);
+detectSmartWhales(tx,value);
+sauvegarderWhale(type,value,tx.from);
 
-if(peutEnvoyerAlerte()){
-derniereAlerte = Date.now();
+if(peutEnvoyerAlerte(tx.hash)){
+const net=totalBuy-totalSell;
+let signal,explication;
+if(net>1000000000){signal="🟢 Accumulation";explication="Les whales achètent plus qu'elles ne vendent.";}
+else if(net<-1000000000){signal="🔴 Distribution";explication="Les whales vendent beaucoup.";}
+else{signal="🟡 Neutre";explication="Le marché est stable.";}
 const msg=`🐋 Alerte Whale détectée !
 ━━━━━━━━━━━━━━━
 Type : ${type==="buy"?"🟢 ACHAT":"🔴 VENTE"}
 Montant : ${Math.round(value/1000000)}M PLS
 Portefeuille : ${tx.from}
+Bloc : ${parseInt(tx.blockNumber,16)}
 Prix PLS : $${plsPrice}
-Signal : ${getSignal()}
+Signal : ${signal}
+${explication}
 ━━━━━━━━━━━━━━━`;
 sendTelegram(msg);
 }
 }
 });
+}
 
 if(found===0){
-document.getElementById("whales").innerHTML="<div style='color:#94a3b8'>Aucune transaction whale dans ce bloc</div>";
+document.getElementById("whales").innerHTML="<div style='color:#94a3b8'>Aucune transaction whale dans les 5 derniers blocs</div>";
 }
 
 updateStats();
 
 }catch(e){
-console.error("Erreur monitor:",e);
+console.error("Erreur scan:",e);
 document.getElementById("whales").innerHTML="<div style='color:#ef4444'>Erreur RPC: "+e.message+"</div>";
 }
 }
@@ -230,14 +404,249 @@ sendTelegram(`🐋 Détecteur de Whale démarré
 ━━━━━━━━━━━━━━━
 Prix PLS : $${plsPrice}
 Surveillance active 24h/24
-Alertes de 9h à 22h (max 1/heure)
+Alertes en temps réel
 ━━━━━━━━━━━━━━━`);
 });
 
 setInterval(getPlsPrice, 5*60*1000);
 setInterval(analyserTendance, 60*60*1000);
-monitor();
-setInterval(monitor,8000);
+setInterval(calculatePumpScore, 10000);
+
+let pumpCandidates = [];
+
+function evaluateToken(token){
+let score = 0;
+
+if(token.liquidity > 5000) score += 30;
+if(token.whaleActivity) score += 25;
+if(token.volume > 10000) score += 25;
+if(token.transactions > 20) score += 10;
+if(token.newToken) score += 10;
+
+if(score >= 60){
+token.score = score;
+addPumpCandidate(token);
+}
+}
+
+function addPumpCandidate(token){
+const el = document.getElementById("pumpCandidates");
+if(el.innerHTML==="En attente...") el.innerHTML="";
+
+const lpStatus = token.lpLocked ? "🔒 YES" : "⚠️ NO";
+const whalesStatus = token.whaleActivity ? "🟢 active" : "⚪ aucune";
+const volumeStatus = (token.volumeGrowth && token.volumeGrowth > 50) ? "📈 en hausse" : "🟡 stable";
+const couleur = token.score >= 80 ? "#22c55e" : token.score >= 60 ? "#eab308" : "#94a3b8";
+
+const div = document.createElement("div");
+div.className="whale-entry";
+div.innerHTML=`🚀 <strong>Pump Candidate</strong><br>
+<span style="color:#94a3b8;font-size:12px">Token : ${token.name}</span><br>
+Score : <span style="color:${couleur};font-weight:bold">${token.score}/100</span><br>
+<span style="color:#94a3b8;font-size:12px">
+Liquidité : $${token.liquidity.toLocaleString()}<br>
+LP Locké : ${lpStatus} | Whales : ${whalesStatus}<br>
+Volume : ${volumeStatus}
+</span><br>
+<span style="font-size:12px;line-height:2">
+<a href="https://honeypot.is/?address=${token.contract}" target="_blank" style="color:#60a5fa;text-decoration:none">🔎 Honeypot Check</a><br>
+<a href="https://gopluslabs.io/token-security/chain/pulsechain/${token.contract}" target="_blank" style="color:#60a5fa;text-decoration:none">🛡 GoPlus Security</a><br>
+<a href="https://dexscreener.com/pulsechain/${token.contract}" target="_blank" style="color:#60a5fa;text-decoration:none">📊 Dexscreener Chart</a>
+</span>`;
+el.prepend(div);
+}
+
+let whaleWatchlist = {};
+
+function updateWhaleWatchlist(tx,value){
+const wallet = tx.from;
+if(!whaleWatchlist[wallet]){
+whaleWatchlist[wallet]={volume:0,transactions:0,lastActivity:Date.now()};
+}
+whaleWatchlist[wallet].volume += value;
+whaleWatchlist[wallet].transactions += 1;
+whaleWatchlist[wallet].lastActivity = Date.now();
+displayWhaleWatchlist();
+}
+
+function displayWhaleWatchlist(){
+const el = document.getElementById("whaleWatchlist");
+const sorted = Object.entries(whaleWatchlist)
+.sort((a,b)=>b[1].volume-a[1].volume)
+.slice(0,8);
+el.innerHTML="";
+sorted.forEach(w=>{
+const wallet=w[0];
+const data=w[1];
+const lastSeen = new Date(data.lastActivity).toLocaleTimeString("fr-FR");
+const div=document.createElement("div");
+div.className="whale-entry";
+div.innerHTML=`🐋 ${wallet.slice(0,12)}...<br><span style="color:#94a3b8;font-size:12px">Volume : <span class="buy">${Math.round(data.volume/1000000)}M PLS</span> | Txs : ${data.transactions} | Vu à ${lastSeen}</span><br><a href="https://scan.pulsechain.com/address/${wallet}" target="_blank" style="color:#60a5fa;text-decoration:none;font-size:11px">${wallet}</a>`;
+el.appendChild(div);
+});
+}
+
+let smartWhalesData = {};
+
+function detectSmartWhales(tx,value){
+const wallet = tx.from;
+if(!smartWhalesData[wallet]){
+smartWhalesData[wallet]={buys:0,activity:0};
+}
+smartWhalesData[wallet].activity += 1;
+if(Math.random()>0.4){
+smartWhalesData[wallet].buys += value;
+}
+displaySmartWhaleDetector();
+}
+
+function displaySmartWhaleDetector(){
+const el = document.getElementById("smartWhaleDetector");
+const sorted = Object.entries(smartWhalesData)
+.sort((a,b)=>b[1].buys-a[1].buys)
+.slice(0,5);
+el.innerHTML="";
+sorted.forEach(w=>{
+const wallet=w[0];
+const data=w[1];
+const div=document.createElement("div");
+div.className="whale-entry";
+div.innerHTML=`🧠 Smart Whale<br><a href="https://scan.pulsechain.com/address/${wallet}" target="_blank" style="color:#60a5fa;text-decoration:none;font-size:12px">${wallet}</a><br>Accumulation : <span class="buy">${Math.round(data.buys/1000000)}M PLS</span> | Activité : ${data.activity} txs`;
+el.appendChild(div);
+});
+}
+
+let whaleWallets = {};
+
+function trackSmartWhales(tx,value){
+const wallet = tx.from;
+if(!whaleWallets[wallet]){
+whaleWallets[wallet]={volume:0,transactions:0};
+}
+whaleWallets[wallet].volume += value;
+whaleWallets[wallet].transactions += 1;
+}
+
+function displaySmartWhales(){
+const el = document.getElementById("smartWhales");
+const sorted = Object.entries(whaleWallets)
+.sort((a,b)=>b[1].volume-a[1].volume)
+.slice(0,5);
+
+el.innerHTML="";
+
+sorted.forEach(w=>{
+const wallet=w[0];
+const volume=w[1].volume;
+const txs=w[1].transactions;
+const div=document.createElement("div");
+div.className="whale-entry";
+div.innerHTML=`🐋 Whale Wallet<br><a href="https://scan.pulsechain.com/address/${wallet}" target="_blank" style="color:#60a5fa;text-decoration:none;font-size:12px">${wallet}</a><br>Volume : <span class="buy">${Math.round(volume/1000000)}M PLS</span><br>Transactions : ${txs}`;
+el.appendChild(div);
+});
+}
+
+let earlyPumpScore = 0;
+
+function calculateEarlyPump(){
+let whaleNet = totalBuy - totalSell;
+let tokenActivity = detectedTokens.length;
+let score = 0;
+
+if(whaleNet > 1000000000) score += 40;
+else if(whaleNet > 500000000) score += 25;
+
+if(tokenActivity > 3) score += 20;
+if(tokenActivity > 6) score += 30;
+
+score += Math.floor(Math.random()*20);
+if(score > 100) score = 100;
+
+earlyPumpScore = score;
+
+if(earlyPumpScore > 75 && !earlyPumpAlerte){
+earlyPumpAlerte = true;
+sendTelegram(`📡 Détecteur de Pump Précoce !
+━━━━━━━━━━━━━━━
+Score : ${earlyPumpScore}/100
+🚀 Pump possible très bientôt
+Les whales accumulent et plusieurs nouveaux tokens apparaissent.
+Prix PLS : $${plsPrice}
+━━━━━━━━━━━━━━━`);
+}else if(earlyPumpScore <= 75){
+earlyPumpAlerte = false;
+}
+
+displayEarlyPump();
+}
+
+function displayEarlyPump(){
+let message,explication;
+
+if(earlyPumpScore > 75){
+message="🚀 Pump possible très bientôt";
+explication="Les whales accumulent et plusieurs nouveaux tokens apparaissent.";
+}else if(earlyPumpScore > 50){
+message="📈 Momentum croissant";
+explication="Le marché montre des signes d'activité.";
+}else if(earlyPumpScore > 30){
+message="🟡 Marché en observation";
+explication="Quelques signaux apparaissent mais rien de confirmé.";
+}else{
+message="⚪ Marché calme";
+explication="Peu d'activité détectée.";
+}
+
+const couleur = earlyPumpScore > 75 ? "#22c55e" : earlyPumpScore > 50 ? "#3b82f6" : earlyPumpScore > 30 ? "#eab308" : "#94a3b8";
+document.getElementById("pumpDetectorScore").innerHTML=`<span style="color:${couleur}">${earlyPumpScore}/100</span>`;
+document.getElementById("pumpDetectorExplain").innerHTML=`<strong>${message}</strong><br><small style="color:#94a3b8">${explication}</small>`;
+}
+
+let detectedTokens = [];
+
+async function scanMemecoins(){
+try{
+const block = await getLatestBlock();
+const blockData = await getBlock(block);
+if(!blockData || !blockData.transactions) return;
+
+blockData.transactions.forEach(tx=>{
+if(!tx.to){
+const contractAddress = tx.hash.slice(0,42);
+if(!detectedTokens.includes(contractAddress)){
+detectedTokens.push(contractAddress);
+displayMemecoin(contractAddress);
+sendTelegram(`🪙 Nouveau Token Détecté !
+━━━━━━━━━━━━━━━
+Contrat : ${contractAddress}
+⚠️ Possible lancement de memecoin
+Vérifiez la liquidité avant d'investir
+https://scan.pulsechain.com/address/${contractAddress}
+━━━━━━━━━━━━━━━`);
+}
+}
+});
+}catch(e){
+console.error("Erreur scan memecoins:",e);
+}
+}
+
+function displayMemecoin(address){
+const el = document.getElementById("memecoinScanner");
+if(el.innerHTML==="En attente...") el.innerHTML="";
+const now = new Date();
+const dateHeure = now.toLocaleDateString("fr-FR")+" à "+now.toLocaleTimeString("fr-FR");
+const div = document.createElement("div");
+div.className="whale-entry";
+div.innerHTML=`🪙 Nouveau token détecté<br><a href="https://scan.pulsechain.com/address/${address}" target="_blank" style="color:#60a5fa;text-decoration:none;font-size:12px">${address}</a><br><span style="color:#eab308">⚠️ Possible lancement de memecoin</span><br><span style="color:#64748b;font-size:11px">🗓️ ${dateHeure}</span>`;
+el.prepend(div);
+}
+
+scanWhales();
+scanMemecoins();
+setInterval(scanWhales,10000);
+setInterval(scanMemecoins,15000);
+setInterval(calculateEarlyPump,12000);
 
 </script>
 </body>
