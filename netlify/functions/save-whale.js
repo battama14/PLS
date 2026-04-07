@@ -1,20 +1,22 @@
-const { getStore } = require("@netlify/blobs");
 
-exports.handler = async (event) => {
-  if(event.httpMethod !== "POST") return {statusCode:405};
+import fs from 'fs'
 
-  const { type, amount, wallet, price } = JSON.parse(event.body);
+const FILE="./site_data.json"
 
-  const store = getStore("whales");
-  const key = `whale_${Date.now()}`;
+export function saveWhale(wallet,amount){
 
-  await store.setJSON(key, {
-    type,
-    amount,
-    wallet,
-    price,
-    timestamp: Date.now()
-  });
+ const data=JSON.parse(fs.readFileSync(FILE))
 
-  return { statusCode: 200, body: JSON.stringify({ok:true}) };
-};
+ data.last_whales.unshift({
+  wallet,
+  amount_pls:amount,
+  time:Date.now()
+ })
+
+ if(data.last_whales.length>100){
+  data.last_whales.pop()
+ }
+
+ fs.writeFileSync(FILE,JSON.stringify(data,null,2))
+
+}

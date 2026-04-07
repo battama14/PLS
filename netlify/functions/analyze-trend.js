@@ -1,61 +1,35 @@
-const { getStore } = require("@netlify/blobs");
 
-exports.handler = async () => {
-  const store = getStore("whales");
-  const { blobs } = await store.list();
+export function computeNet(buys,sells){
+ return buys - sells
+}
 
-  const now = Date.now();
-  const il_y_a_24h = now - 24*60*60*1000;
-  const il_y_a_48h = now - 48*60*60*1000;
+export function sentiment(buys,sells){
+ const t=buys+sells
+ if(t===0) return 50
+ return Math.round((buys/t)*100)
+}
 
-  const whales = [];
-  for(const blob of blobs){
-    const data = await store.get(blob.key, {type:"json"});
-    if(data) whales.push(data);
-  }
+export function pumpScore(data){
 
-  // Periode : dernières 24h vs 24h précédentes
-  const periode_recente  = whales.filter(w => w.timestamp >= il_y_a_24h);
-  const periode_precedente = whales.filter(w => w.timestamp >= il_y_a_48h && w.timestamp < il_y_a_24h);
+ let score=0
 
-  const stats = (liste) => ({
-    achats: liste.filter(w=>w.type==="buy").reduce((s,w)=>s+w.amount,0),
-    ventes: liste.filter(w=>w.type==="sell").reduce((s,w)=>s+w.amount,0),
-    total: liste.length
-  });
+ if(data.whales>2) score+=30
+ if(data.liquidity_spike) score+=30
+ if(data.volume_spike) score+=20
+ if(data.new_wallets>10) score+=20
 
-  const recent = stats(periode_recente);
-  const precedent = stats(periode_precedente);
+ return score
 
-  const alertes = [];
+}
 
-  // Calcul variation en %
-  if(precedent.achats > 0){
-    const varAchat = ((recent.achats - precedent.achats) / precedent.achats) * 100;
-    if(varAchat >= 10){
-      alertes.push(`📈 Hausse des ACHATS whales de ${Math.round(varAchat)}% sur 24h`);
-    }
-    if(varAchat <= -10){
-      alertes.push(`📉 Baisse des ACHATS whales de ${Math.abs(Math.round(varAchat))}% sur 24h`);
-    }
-  }
+export function formatPLS(v){
 
-  if(precedent.ventes > 0){
-    const varVente = ((recent.ventes - precedent.ventes) / precedent.ventes) * 100;
-    if(varVente >= 10){
-      alertes.push(`📈 Hausse des VENTES whales de ${Math.round(varVente)}% sur 24h`);
-    }
-    if(varVente <= -10){
-      alertes.push(`📉 Baisse des VENTES whales de ${Math.abs(Math.round(varVente))}% sur 24h`);
-    }
-  }
+ if(!v) return "0 PLS"
 
-  return {
-    statusCode: 200,
-    body: JSON.stringify({
-      alertes,
-      recent,
-      precedent
-    })
-  };
-};
+ if(v>1e9) return (v/1e9).toFixed(2)+"B PLS"
+ if(v>1e6) return (v/1e6).toFixed(2)+"M PLS"
+ if(v>1e3) return (v/1e3).toFixed(2)+"K PLS"
+
+ return v.toFixed(2)+" PLS"
+
+}
