@@ -1103,7 +1103,7 @@ else{ type="buy"; amount=swap.amount1In||swap.amount0Out; }
 }
 
 const valueEth = amount / 1e18;
-if(valueEth < WHALE_THRESHOLD) return;
+if(valueEth < WHALE_THRESHOLD) continue;
 
 // Afficher dans whale activity
 const whalesEl = document.getElementById("whales");
@@ -1134,9 +1134,9 @@ Prix PLS : $${plsPrice}
 Flux Net : ${Math.round(net/1000000)}M PLS
 ━━━━━━━━━━━━━━━`, "high");
 }
-});
 
 updateStats();
+}
 }
 
 async function scanWhales(){
