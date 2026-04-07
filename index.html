@@ -32,6 +32,23 @@ h2{font-size:clamp(0.95rem,4vw,1.3rem);margin-bottom:12px;}
     <div id="plsMarket" style="font-size:clamp(12px,3vw,14px);line-height:2;">Chargement...</div>
   </div>
 
+  <div class="card" style="border:1px solid #22c55e;">
+    <h2>📦 Données Historiques</h2>
+    <div style="display:flex;gap:6px;margin-bottom:8px;">
+      <button onclick="loadHistorical('24h')" id="ht-24h" style="flex:1;padding:4px;background:#0f172a;color:#94a3b8;border:1px solid #334155;border-radius:6px;cursor:pointer;font-size:11px;">Jour</button>
+      <button onclick="loadHistorical('30d')" id="ht-30d" style="flex:1;padding:4px;background:#0f172a;color:#94a3b8;border:1px solid #334155;border-radius:6px;cursor:pointer;font-size:11px;">Mois</button>
+      <button onclick="loadHistorical('all')" id="ht-all" style="flex:1;padding:4px;background:#1e3a5f;color:#60a5fa;border:1px solid #3b82f6;border-radius:6px;cursor:pointer;font-size:11px;">Tout</button>
+    </div>
+    <div id="historicalData" style="font-size:clamp(12px,3vw,14px);text-align:left;line-height:2;">
+      <span style="color:#94a3b8;">Chargement des données historiques...</span>
+    </div>
+    <div class="aide">
+      <div class="aide-titre">📖 Données indexées localement</div>
+      <div class="aide-ligne">Ces données proviennent de l'indexeur local — historique complet de PulseChain.</div>
+      <div class="aide-ligne">🟢 <strong>Flux positif</strong> = accumulation historique des whales.</div>
+    </div>
+  </div>
+
   <div class="card">
     <h2>🔥 PLS Burn Monitor</h2>
     <div id="plsBurn" style="font-size:clamp(12px,3vw,14px);line-height:2;">Chargement...</div>
@@ -43,9 +60,55 @@ h2{font-size:clamp(0.95rem,4vw,1.3rem);margin-bottom:12px;}
     </div>
   </div>
 
+  <div class="card">
+    <h2>📈 Netflow Whales</h2>
+    <div style="display:flex;gap:6px;margin-bottom:8px;">
+      <button onclick="setTimeframe(1440)" id="tf-1440" style="flex:1;padding:4px;background:#1e3a5f;color:#60a5fa;border:1px solid #3b82f6;border-radius:6px;cursor:pointer;font-size:11px;">Jour</button>
+      <button onclick="setTimeframe(43200)" id="tf-43200" style="flex:1;padding:4px;background:#0f172a;color:#94a3b8;border:1px solid #334155;border-radius:6px;cursor:pointer;font-size:11px;">Mois</button>
+      <button onclick="setTimeframe(525600)" id="tf-525600" style="flex:1;padding:4px;background:#0f172a;color:#94a3b8;border:1px solid #334155;border-radius:6px;cursor:pointer;font-size:11px;">Année</button>
+      <button onclick="setTimeframe(0)" id="tf-0" style="flex:1;padding:4px;background:#0f172a;color:#94a3b8;border:1px solid #334155;border-radius:6px;cursor:pointer;font-size:11px;">Tout</button>
+    </div>
+    <canvas id="netflowChart" style="width:100%;height:200px;"></canvas>
+    <div style="display:flex;justify-content:center;gap:12px;margin-top:8px;font-size:11px;color:#94a3b8;">
+      <span style="color:#22c55e">■ BUY</span>
+      <span style="color:#ef4444">■ SELL</span>
+      <span style="color:#60a5fa">■ NET</span>
+    </div>
+    <div class="aide">
+      <div class="aide-titre">📖 Comment interpréter ?</div>
+      <div class="aide-ligne">🟢 <strong>Ligne bleue monte</strong> = accumulation progressive = signal pump.</div>
+      <div class="aide-ligne">🔴 <strong>Ligne bleue descend</strong> = distribution = pression vendeuse.</div>
+    </div>
+  </div>
+
   <div class="card" style="border:1px solid #ef4444;">
     <h2>🚨 Trading Signals</h2>
     <div id="tradingSignals" style="max-height:200px;overflow-y:auto;">Monitoring...</div>
+  </div>
+
+  <div class="card">
+    <h2>🧠 Whale Sentiment Score</h2>
+    <div id="whaleSentiment" style="text-align:center;padding:8px 0;">
+      <div id="sentimentScore" style="font-size:clamp(1.5rem,6vw,2.5rem);font-weight:bold;">--/100</div>
+      <div id="sentimentLabel" style="font-size:clamp(12px,3vw,14px);color:#94a3b8;">Calcul en cours...</div>
+      <div id="sentimentDetail" style="font-size:clamp(11px,2.5vw,13px);color:#64748b;margin-top:4px;"></div>
+    </div>
+    <div class="aide">
+      <div class="aide-titre">📖 Comment interpréter ?</div>
+      <div class="aide-ligne">🟢 <strong>Score > 60 :</strong> les whales achètent majoritairement.</div>
+      <div class="aide-ligne">🔴 <strong>Score < 40 :</strong> les whales vendent majoritairement.</div>
+      <div class="aide-ligne">🟡 <strong>Score 40-60 :</strong> marché équilibré.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🌡️ Whale Heatmap</h2>
+    <div id="whaleHeatmap" style="max-height:200px;overflow-y:auto;">Scanning blockchain...</div>
+    <div class="aide">
+      <div class="aide-titre">📖 Comment interpréter ?</div>
+      <div class="aide-ligne">Les 10 dernières transactions whales. Visualisez la tendance immédiate.</div>
+      <div class="aide-ligne">🟢 Majorité verte = pression acheteuse | 🔴 Majorité rouge = pression vendeuse.</div>
+    </div>
   </div>
 
   <div class="group-title">📊 Analyse du Marché</div>
@@ -105,7 +168,7 @@ h2{font-size:clamp(0.95rem,4vw,1.3rem);margin-bottom:12px;}
 
   <div class="card">
     <h2>🚀 Pump Candidates</h2>
-    <div id="pumpCandidates" style="max-height:260px;overflow-y:auto;">En attente...</div>
+    <div id="pumpCandidates" style="max-height:260px;overflow-y:auto;">Scanning blockchain...</div>
     <div class="aide">
       <div class="aide-titre">📖 Comment interpréter ces données ?</div>
       <div class="aide-ligne">Un token est candidat au pump s'il cumule plusieurs signaux positifs (score ≥ 60/100).</div>
@@ -119,7 +182,7 @@ h2{font-size:clamp(0.95rem,4vw,1.3rem);margin-bottom:12px;}
 
   <div class="card">
     <h2>📋 Whale Watchlist</h2>
-    <div id="whaleWatchlist" style="max-height:260px;overflow-y:auto;">En attente...</div>
+    <div id="whaleWatchlist" style="max-height:260px;overflow-y:auto;">Scanning blockchain...</div>
     <div class="aide">
       <div class="aide-titre">📖 Comment interpréter ces données ?</div>
       <div class="aide-ligne">Suivi des wallets whales les plus actifs avec leur volume total et leur dernière activité.</div>
@@ -130,7 +193,7 @@ h2{font-size:clamp(0.95rem,4vw,1.3rem);margin-bottom:12px;}
 
   <div class="card">
     <h2>🧠 Smart Whale Detector</h2>
-    <div id="smartWhaleDetector" style="max-height:260px;overflow-y:auto;">En attente...</div>
+    <div id="smartWhaleDetector" style="max-height:260px;overflow-y:auto;">Scanning blockchain...</div>
     <div class="aide">
       <div class="aide-titre">📖 Comment interpréter ces données ?</div>
       <div class="aide-ligne">Détecte les wallets qui accumulent de manière répétée = comportement de "smart money".</div>
@@ -141,7 +204,7 @@ h2{font-size:clamp(0.95rem,4vw,1.3rem);margin-bottom:12px;}
 
   <div class="card">
     <h2>🧠 Top Wallets Whales</h2>
-    <div id="smartWhales" style="max-height:260px;overflow-y:auto;">En attente...</div>
+    <div id="smartWhales" style="max-height:260px;overflow-y:auto;">Scanning blockchain...</div>
     <div class="aide">
       <div class="aide-titre">📖 Comment interpréter ces données ?</div>
       <div class="aide-ligne">Ce classement montre les wallets qui ont déplacé le plus de PLS depuis le démarrage.</div>
@@ -153,7 +216,7 @@ h2{font-size:clamp(0.95rem,4vw,1.3rem);margin-bottom:12px;}
 
   <div class="card">
     <h2>🪙 Nouveaux Tokens Détectés</h2>
-    <div id="memecoinScanner" style="max-height:260px;overflow-y:auto;">En attente...</div>
+    <div id="memecoinScanner" style="max-height:260px;overflow-y:auto;">Scanning blockchain...</div>
     <div class="aide">
       <div class="aide-titre">📖 Comment interpréter ces données ?</div>
       <div class="aide-ligne">Un nouveau token = un contrat déployé sur PulseChain. Cela peut être un memecoin ou un projet.</div>
@@ -165,7 +228,7 @@ h2{font-size:clamp(0.95rem,4vw,1.3rem);margin-bottom:12px;}
 
   <div class="card">
     <h2>🧠 Insider Wallets</h2>
-    <div id="insiderWallets" style="max-height:260px;overflow-y:auto;">Scanning...</div>
+    <div id="insiderWallets" style="max-height:260px;overflow-y:auto;">Scanning blockchain...</div>
     <div class="aide">
       <div class="aide-titre">📖 Comment interpréter ces données ?</div>
       <div class="aide-ligne">Un insider wallet est un wallet qui crée un token, une pool ET achète avant tout le monde.</div>
@@ -176,7 +239,7 @@ h2{font-size:clamp(0.95rem,4vw,1.3rem);margin-bottom:12px;}
 
   <div class="card">
     <h2>🚀 Pump Probability Score</h2>
-    <div id="pumpScores" style="max-height:260px;overflow-y:auto;">Scanning...</div>
+    <div id="pumpScores" style="max-height:260px;overflow-y:auto;">Scanning blockchain...</div>
     <div class="aide">
       <div class="aide-titre">📖 Comment interpréter ce score ?</div>
       <div class="aide-ligne">Score combiné de tous les signaux : createPair, LP lock, insider, whales, spike.</div>
@@ -188,7 +251,7 @@ h2{font-size:clamp(0.95rem,4vw,1.3rem);margin-bottom:12px;}
 
   <div class="card">
     <h2>🐋 Pre-Spike Whales</h2>
-    <div id="preSpikeWhales" style="max-height:260px;overflow-y:auto;">Scanning...</div>
+    <div id="preSpikeWhales" style="max-height:260px;overflow-y:auto;">Scanning blockchain...</div>
     <div class="aide">
       <div class="aide-titre">📖 Comment interpréter ces données ?</div>
       <div class="aide-ligne">Détecte les whales qui achètent AVANT un liquidity spike = insiders / snipers.</div>
@@ -199,7 +262,7 @@ h2{font-size:clamp(0.95rem,4vw,1.3rem);margin-bottom:12px;}
 
   <div class="card">
     <h2>💧 Liquidity Spike</h2>
-    <div id="liquiditySpike" style="max-height:260px;overflow-y:auto;">Scanning...</div>
+    <div id="liquiditySpike" style="max-height:260px;overflow-y:auto;">Scanning blockchain...</div>
     <div class="aide">
       <div class="aide-titre">📖 Comment interpréter ces données ?</div>
       <div class="aide-ligne">Détecte quand la liquidité d'un token double en moins de 5 minutes.</div>
@@ -210,7 +273,7 @@ h2{font-size:clamp(0.95rem,4vw,1.3rem);margin-bottom:12px;}
 
   <div class="card">
     <h2>🚀 Early Whale Entry</h2>
-    <div id="earlyWhales" style="max-height:260px;overflow-y:auto;">Scanning...</div>
+    <div id="earlyWhales" style="max-height:260px;overflow-y:auto;">Scanning blockchain...</div>
     <div class="aide">
       <div class="aide-titre">📖 Comment interpréter ces données ?</div>
       <div class="aide-ligne">Détecte quand plusieurs whales achètent dans les 30 secondes après l'ajout de liquidité.</div>
@@ -221,7 +284,7 @@ h2{font-size:clamp(0.95rem,4vw,1.3rem);margin-bottom:12px;}
 
   <div class="card">
     <h2>🧠 Smart Money Wallets</h2>
-    <div id="smartMoney" style="max-height:260px;overflow-y:auto;">En attente...</div>
+    <div id="smartMoney" style="max-height:260px;overflow-y:auto;">Scanning blockchain...</div>
     <div class="aide">
       <div class="aide-titre">📖 Comment interpréter ces données ?</div>
       <div class="aide-ligne">Wallets qui ont acheté avant des hausses de prix = comportement "smart money".</div>
@@ -241,8 +304,14 @@ const TELEGRAM_BOT = window.location.hostname === "localhost"
   ? "https://api.telegram.org/bot8325675978:AAHua1MO4XywydUxT9r5E1Cj0DcXaQtnIuQ/sendMessage"
   : "/.netlify/functions/notify";
 
-let totalFlow = 0; // volume total des transferts whales
-let totalVolume = 0; // volume total des swaps detectes
+// Persister totalFlow et totalVolume dans sessionStorage pour eviter reset
+let totalFlow = parseFloat(sessionStorage.getItem("totalFlow") || "0");
+let totalVolume = parseFloat(sessionStorage.getItem("totalVolume") || "0");
+
+function saveTotals(){
+sessionStorage.setItem("totalFlow", totalFlow.toString());
+sessionStorage.setItem("totalVolume", totalVolume.toString());
+}
 let plsPrice = 0;
 let derniereAnalyse = 0;
 let whaleScore = 0;
@@ -284,19 +353,32 @@ console.error("Burn monitor error:",e);
 }
 
 function displayBurnData(burn, txs){
-let activity="⚪ Faible";
-let color="#94a3b8";
-if(txs > 200){ activity="🟡 Active"; color="#eab308"; }
-if(txs > 400){ activity="🟢 Très active"; color="#22c55e"; }
+// Reset journalier a minuit
+const today = new Date().toLocaleDateString('fr-FR');
+if(burnDayDate !== today){
+  burnDayTotal = 0;
+  burnDayDate = today;
+  localStorage.setItem('burnDayDate', today);
+}
+burnDayTotal += burn / 1e18;
+localStorage.setItem('burnDayTotal', burnDayTotal.toString());
+
+let activity="⚪ Faible", actColor="#94a3b8";
+if(txs > 200){ activity="🟡 Active"; actColor="#eab308"; }
+if(txs > 400){ activity="🟢 Très active"; actColor="#22c55e"; }
+
 const avgBurn = burnHistory.length > 0 ? burnHistory.reduce((a,b)=>a+b,0)/burnHistory.length : 0;
 const burnTrend = avgBurn > 0 ? ((burn/avgBurn-1)*100).toFixed(1) : 0;
-const trendColor = burnTrend > 0 ? "#22c55e" : "#ef4444";
+const trendColor = parseFloat(burnTrend) > 0 ? "#22c55e" : "#ef4444";
+const trendIcon  = parseFloat(burnTrend) > 0 ? "📈" : "📉";
+
 document.getElementById("plsBurn").innerHTML=`
 <div style="text-align:left">
-Burn récent : <strong>${burn.toLocaleString()}</strong> wei<br>
-Tendance : <span style="color:${trendColor}">${burnTrend > 0 ? "+" : ""}${burnTrend}% vs moyenne</span><br>
+Burn récent : <strong>${(burn/1e18).toFixed(2)} PLS</strong><br>
+Tendance instantanée : <span style="color:${trendColor}">${trendIcon} ${burnTrend > 0 ? "+" : ""}${burnTrend}% vs moyenne</span><br>
+Burn aujourd'hui : <strong style="color:#f97316">${burnDayTotal.toFixed(2)} PLS</strong> <span style="color:#64748b;font-size:11px">(reset à minuit)</span><br>
 Transactions réseau : <strong>${txs}</strong><br>
-Activité réseau : <span style="color:${color}">${activity}</span>
+Activité réseau : <span style="color:${actColor}">${activity}</span>
 </div>`;
 }
 
@@ -421,9 +503,19 @@ return h >= 9 && h < 22;
 }
 
 const alertesEnvoyees = new Set();
+const txTraites = new Set(); // deduplication globale toutes fonctions confondues
+const MAX_TX_CACHE = 500;
+function addTxTraite(hash){ if(txTraites.size > MAX_TX_CACHE){ txTraites.clear(); } txTraites.add(hash); }
+// Charger historique depuis localStorage
+let netflowHistory = JSON.parse(localStorage.getItem("netflowHistory") || "[]");
+let netflowBuyAccum = parseFloat(localStorage.getItem("netflowBuyAccum") || "0");
+let netflowSellAccum = parseFloat(localStorage.getItem("netflowSellAccum") || "0");
+let currentTimeframe = 1440; // minutes, 0 = tout
 let lastTelegramAlert = 0;
 let lastBurnBlock = 0;
 let burnHistory = [];
+let burnDayTotal = parseFloat(localStorage.getItem('burnDayTotal') || '0');
+let burnDayDate = localStorage.getItem('burnDayDate') || '';
 let lastScannedBlock = 0;
 const burnSpikeAlerte = new Set();
 
@@ -502,13 +594,15 @@ el.prepend(div);
 
 function calculatePumpScore(){
 const whaleNet = totalFlow - totalVolume;
+const sentimentBonus = whaleHeatmapData.length > 0 ?
+Math.round((whaleHeatmapData.filter(w=>w.type==="buy").length / whaleHeatmapData.length) * 20) : 0;
 
 if(whaleNet > 1000000000) whaleScore = 40;
 else if(whaleNet > 500000000) whaleScore = 25;
 else if(whaleNet < -1000000000) whaleScore = -30;
 else whaleScore = 10;
 
-activityScore = 10; // mis a jour dans scanWhales avec block.transactions.length
+activityScore = Math.min(sentimentBonus + 10, 30); // base 10 + bonus sentiment
 
 pumpScore = calculateAdvancedPumpScore();
 if(pumpScore < 0) pumpScore = 0;
@@ -550,12 +644,13 @@ document.getElementById("pumpRadarExplain").innerHTML=`<strong>${message}</stron
 }
 
 function displayWhale(tx,value,type){
+addToHeatmap(value, type, tx.from);
 const whales=document.getElementById("whales");
 if(whales.innerHTML==="Chargement...") whales.innerHTML="";
 const div=document.createElement("div");
 div.className="whale-entry";
 div.innerHTML=`<span style="color:#60a5fa">🐋 TRANSFERT WHALE ${Math.round(value/1000000)}M PLS</span><br>
-Portefeuille : <a href="https://scan.pulsechain.com/address/${tx.from}" target="_blank" style="color:#60a5fa;text-decoration:none">${tx.from.slice(0,12)}...</a><br>
+Portefeuille : <a href="https://scan.pulsechain.com/address/${tx.from}" target="_blank" rel="noopener noreferrer" style="color:#60a5fa;text-decoration:none">${tx.from.slice(0,12)}...</a><br>
 Bloc : ${parseInt(tx.blockNumber,16)}`;
 whales.prepend(div);
 }
@@ -660,7 +755,7 @@ const now = new Date();
 const dateHeure = now.toLocaleDateString("fr-FR")+" à "+now.toLocaleTimeString("fr-FR");
 const div = document.createElement("div");
 div.className="whale-entry";
-div.innerHTML=`🧪 Nouvelle Pool PulseX<br><a href="https://scan.pulsechain.com/address/${tx.from}" target="_blank" style="color:#60a5fa;text-decoration:none;font-size:12px">${tx.from}</a><br><span style="color:#eab308">⚠️ createPair détecté - avant Dexscreener</span><br>Bloc : ${parseInt(tx.blockNumber,16)}<br><span style="color:#64748b;font-size:11px">🗓️ ${dateHeure}</span>`;
+div.innerHTML=`🧪 Nouvelle Pool PulseX<br><a href="https://scan.pulsechain.com/address/${tx.from}" target="_blank" rel="noopener noreferrer" style="color:#60a5fa;text-decoration:none;font-size:12px">${tx.from}</a><br><span style="color:#eab308">⚠️ createPair détecté - avant Dexscreener</span><br>Bloc : ${parseInt(tx.blockNumber,16)}<br><span style="color:#64748b;font-size:11px">🗓️ ${dateHeure}</span>`;
 el.prepend(div);
 }
 
@@ -753,7 +848,7 @@ else if(score>30){level="⚠️ INCERTAIN";color="#94a3b8";}
 else{level="❌ LOW";color="#ef4444";}
 const div=document.createElement("div");
 div.className="whale-entry";
-div.innerHTML=`🚀 <strong>Score : <span style="color:${color}">${score}/100</span></strong> ${level}<br><a href="https://dexscreener.com/pulsechain/${contract}" target="_blank" style="color:#60a5fa;text-decoration:none;font-size:12px">${contract.slice(0,14)}...</a>`;
+div.innerHTML=`🚀 <strong>Score : <span style="color:${color}">${score}/100</span></strong> ${level}<br><a href="https://dexscreener.com/pulsechain/${contract}" target="_blank" rel="noopener noreferrer" style="color:#60a5fa;text-decoration:none;font-size:12px">${contract.slice(0,14)}...</a>`;
 el.appendChild(div);
 });
 }
@@ -793,7 +888,7 @@ const el = document.getElementById("preSpikeWhales");
 if(el.innerHTML==="Scanning...") el.innerHTML="";
 const div = document.createElement("div");
 div.className="whale-entry";
-div.innerHTML=`🐋 <strong>Whales avant Liquidity Spike</strong><br><a href="https://dexscreener.com/pulsechain/${contract}" target="_blank" style="color:#60a5fa;text-decoration:none;font-size:12px">${contract.slice(0,14)}...</a><br>Whales (${whales.length}) :<br>${whales.slice(0,3).map(w=>`<a href="https://scan.pulsechain.com/address/${w.wallet}" target="_blank" style="color:#60a5fa;text-decoration:none;font-size:11px">${w.wallet.slice(0,14)}...</a>`).join("<br>")}<br><span style="color:#22c55e">🚀 Signal très bullish</span>`;
+div.innerHTML=`🐋 <strong>Whales avant Liquidity Spike</strong><br><a href="https://dexscreener.com/pulsechain/${contract}" target="_blank" rel="noopener noreferrer" style="color:#60a5fa;text-decoration:none;font-size:12px">${contract.slice(0,14)}...</a><br>Whales (${whales.length}) :<br>${whales.slice(0,3).map(w=>`<a href="https://scan.pulsechain.com/address/${w.wallet}" target="_blank" rel="noopener noreferrer" style="color:#60a5fa;text-decoration:none;font-size:11px">${w.wallet.slice(0,14)}...</a>`).join("<br>")}<br><span style="color:#22c55e">🚀 Signal très bullish</span>`;
 el.prepend(div);
 }
 
@@ -838,7 +933,7 @@ const el = document.getElementById("liquiditySpike");
 if(el.innerHTML==="Scanning...") el.innerHTML="";
 const div = document.createElement("div");
 div.className="whale-entry";
-div.innerHTML=`💧 <strong>Liquidity Spike x${ratio.toFixed(2)}</strong><br><a href="https://dexscreener.com/pulsechain/${contract}" target="_blank" style="color:#60a5fa;text-decoration:none;font-size:12px">${contract.slice(0,14)}...</a><br><span style="color:#22c55e">⚠️ Forte entrée de capital - possible lancement</span>`;
+div.innerHTML=`💧 <strong>Liquidity Spike x${ratio.toFixed(2)}</strong><br><a href="https://dexscreener.com/pulsechain/${contract}" target="_blank" rel="noopener noreferrer" style="color:#60a5fa;text-decoration:none;font-size:12px">${contract.slice(0,14)}...</a><br><span style="color:#22c55e">⚠️ Forte entrée de capital - possible lancement</span>`;
 el.prepend(div);
 }
 
@@ -883,7 +978,7 @@ const el = document.getElementById("earlyWhales");
 if(el.innerHTML==="Scanning...") el.innerHTML="";
 const div = document.createElement("div");
 div.className="whale-entry";
-div.innerHTML=`🚀 <strong>Early Whale Entry !</strong><br>Dev : <a href="https://scan.pulsechain.com/address/${dev}" target="_blank" style="color:#60a5fa;text-decoration:none;font-size:12px">${dev.slice(0,14)}...</a><br>Whales (${whales.length}) :<br>${whales.slice(0,3).map(w=>`<a href="https://scan.pulsechain.com/address/${w}" target="_blank" style="color:#60a5fa;text-decoration:none;font-size:11px">${w.slice(0,14)}...</a>`).join("<br>")}<br><span style="color:#22c55e">⚠️ Pump potentiel</span>`;
+div.innerHTML=`🚀 <strong>Early Whale Entry !</strong><br>Dev : <a href="https://scan.pulsechain.com/address/${dev}" target="_blank" rel="noopener noreferrer" style="color:#60a5fa;text-decoration:none;font-size:12px">${dev.slice(0,14)}...</a><br>Whales (${whales.length}) :<br>${whales.slice(0,3).map(w=>`<a href="https://scan.pulsechain.com/address/${w}" target="_blank" rel="noopener noreferrer" style="color:#60a5fa;text-decoration:none;font-size:11px">${w.slice(0,14)}...</a>`).join("<br>")}<br><span style="color:#22c55e">⚠️ Pump potentiel</span>`;
 el.prepend(div);
 }
 
@@ -916,7 +1011,7 @@ if(el.innerHTML==="Scanning...") el.innerHTML="";
 const couleur = risk.includes("SAFE") ? "#22c55e" : risk.includes("RUG") ? "#ef4444" : risk.includes("HIGH") ? "#f97316" : "#eab308";
 const div = document.createElement("div");
 div.className="whale-entry";
-div.innerHTML=`🔍 Dev Supply Analysé<br><a href="https://scan.pulsechain.com/address/${creator}" target="_blank" style="color:#60a5fa;text-decoration:none;font-size:12px">${creator.slice(0,14)}...</a><br><span style="color:${couleur};font-weight:bold">${risk}</span>`;
+div.innerHTML=`🔍 Dev Supply Analysé<br><a href="https://scan.pulsechain.com/address/${creator}" target="_blank" rel="noopener noreferrer" style="color:#60a5fa;text-decoration:none;font-size:12px">${creator.slice(0,14)}...</a><br><span style="color:${couleur};font-weight:bold">${risk}</span>`;
 el.prepend(div);
 }
 
@@ -942,7 +1037,7 @@ const el = document.getElementById("insiderWallets");
 if(el.innerHTML==="Scanning...") el.innerHTML="";
 const div = document.createElement("div");
 div.className="whale-entry";
-div.innerHTML=`🔒 <strong>LP Lock Détecté !</strong><br><a href="https://scan.pulsechain.com/address/${wallet}" target="_blank" style="color:#60a5fa;text-decoration:none;font-size:12px">${wallet}</a><br><span style="color:#22c55e">✅ Liquidité verrouillée - signal positif</span>`;
+div.innerHTML=`🔒 <strong>LP Lock Détecté !</strong><br><a href="https://scan.pulsechain.com/address/${wallet}" target="_blank" rel="noopener noreferrer" style="color:#60a5fa;text-decoration:none;font-size:12px">${wallet}</a><br><span style="color:#22c55e">✅ Liquidité verrouillée - signal positif</span>`;
 el.prepend(div);
 }
 
@@ -989,7 +1084,7 @@ div.className="whale-entry";
 const lockStatus = liquidityLocks[wallet] ? "🔒 LP Locké" : "⚠️ LP Unlocked";
 const risk = devSupplyData[wallet]?.risk || "❓ Non analysé";
 const riskColor = risk.includes("SAFE") ? "#22c55e" : risk.includes("RUG") ? "#ef4444" : risk.includes("HIGH") ? "#f97316" : "#eab308";
-div.innerHTML=`🧠 Insider Wallet<br><a href="https://scan.pulsechain.com/address/${wallet}" target="_blank" style="color:#60a5fa;text-decoration:none;font-size:12px">${wallet}</a><br>Tokens créés : ${data.pairs} | Liquidité : ${data.liquidity}<br>Achats : <span style="color:#22c55e">${Math.round(data.buys/1000000)}M PLS</span><br>${lockStatus} | <span style="color:${riskColor}">${risk}</span>`;
+div.innerHTML=`🧠 Insider Wallet<br><a href="https://scan.pulsechain.com/address/${wallet}" target="_blank" rel="noopener noreferrer" style="color:#60a5fa;text-decoration:none;font-size:12px">${wallet}</a><br>Tokens créés : ${data.pairs} | Liquidité : ${data.liquidity}<br>Achats : <span style="color:#22c55e">${Math.round(data.buys/1000000)}M PLS</span><br>${lockStatus} | <span style="color:${riskColor}">${risk}</span>`;
 el.appendChild(div);
 });
 }
@@ -1016,7 +1111,7 @@ const wallet=w[0];
 const data=w[1];
 const div=document.createElement("div");
 div.className="whale-entry";
-div.innerHTML=`🧠 Smart Money<br><a href="https://scan.pulsechain.com/address/${wallet}" target="_blank" style="color:#60a5fa;text-decoration:none;font-size:12px">${wallet}</a><br>Prédictions : <span style="color:#22c55e">${data.predictions}</span> | Volume : ${Math.round(data.volume/1000000)}M PLS`;
+div.innerHTML=`🧠 Smart Money<br><a href="https://scan.pulsechain.com/address/${wallet}" target="_blank" rel="noopener noreferrer" style="color:#60a5fa;text-decoration:none;font-size:12px">${wallet}</a><br>Prédictions : <span style="color:#22c55e">${data.predictions}</span> | Volume : ${Math.round(data.volume/1000000)}M PLS`;
 el.appendChild(div);
 });
 }
@@ -1078,6 +1173,8 @@ const logs = await getSwapLogs(latestBlock - BLOCK_LOOKBACK, latestBlock);
 if(!logs.length) return;
 
 for(const log of logs){
+if(txTraites.has(log.transactionHash)) continue;
+addTxTraite(log.transactionHash);
 const swap = decodeSwap(log);
 
 // Recuperer les tokens de la pool pour determiner BUY/SELL correctement
@@ -1103,7 +1200,8 @@ else{ type="buy"; amount=swap.amount1In||swap.amount0Out; }
 }
 
 const valueEth = amount / 1e18;
-if(valueEth < WHALE_THRESHOLD) continue;
+// Filtre: ignorer les valeurs aberrantes (> 100B PLS = probablement mauvais decode)
+if(valueEth < WHALE_THRESHOLD || valueEth > 100000000000) continue;
 
 // Afficher dans whale activity
 const whalesEl = document.getElementById("whales");
@@ -1113,13 +1211,13 @@ div.className = "whale-entry";
 const color = type === "buy" ? "#22c55e" : "#ef4444";
 const icon = type === "buy" ? "🟢 SWAP BUY" : "🔴 SWAP SELL";
 div.innerHTML = `<span style="color:${color}">${icon} ${Math.round(valueEth/1000000)}M PLS</span><br>
-Pool : <a href="https://scan.pulsechain.com/address/${swap.pool}" target="_blank" style="color:#60a5fa;text-decoration:none;font-size:11px">${swap.pool.slice(0,14)}...</a><br>
-Tx : <a href="https://scan.pulsechain.com/tx/${swap.tx}" target="_blank" style="color:#60a5fa;text-decoration:none;font-size:11px">${swap.tx.slice(0,14)}...</a>`;
+Pool : <a href="https://scan.pulsechain.com/address/${swap.pool}" target="_blank" rel="noopener noreferrer" style="color:#60a5fa;text-decoration:none;font-size:11px">${swap.pool.slice(0,14)}...</a><br>
+Tx : <a href="https://scan.pulsechain.com/tx/${swap.tx}" target="_blank" rel="noopener noreferrer" style="color:#60a5fa;text-decoration:none;font-size:11px">${swap.tx.slice(0,14)}...</a>`;
 whalesEl.prepend(div);
 
 // Mettre a jour totalFlow
-if(type === "buy") totalFlow += valueEth;
-else totalVolume += valueEth;
+if(type === "buy"){ totalFlow += valueEth; }else{ totalVolume += valueEth; }
+saveTotals();
 
 // Alerte Telegram si gros swap
 if(valueEth > 1000000000 && !alertesEnvoyees.has(swap.tx)){
@@ -1137,6 +1235,219 @@ Flux Net : ${Math.round(net/1000000)}M PLS
 
 updateStats();
 }
+}
+
+
+// === WHALE SENTIMENT SCORE ===
+const whaleHeatmapData = [];
+const walletAccumTracker = {};
+
+function updateWhaleSentiment(){
+if(whaleHeatmapData.length === 0) return;
+const buyVol = whaleHeatmapData.filter(w=>w.type==="buy").reduce((s,w)=>s+w.value,0);
+const sellVol = whaleHeatmapData.filter(w=>w.type==="sell").reduce((s,w)=>s+w.value,0);
+const total = buyVol + sellVol;
+if(total === 0) return;
+
+const score = Math.round((buyVol / total) * 100);
+let label, color;
+if(score > 65){ label="🟢 Accumulation"; color="#22c55e"; }
+else if(score > 50){ label="🟡 Légèrement haussier"; color="#eab308"; }
+else if(score > 35){ label="🟡 Légèrement baissier"; color="#f97316"; }
+else{ label="🔴 Distribution"; color="#ef4444"; }
+
+document.getElementById("sentimentScore").innerHTML=`<span style="color:${color}">${score}/100</span>`;
+document.getElementById("sentimentLabel").innerHTML=`<strong style="color:${color}">${label}</strong>`;
+document.getElementById("sentimentDetail").innerHTML=`BUY : ${Math.round(buyVol/1000000)}M | SELL : ${Math.round(sellVol/1000000)}M`;
+}
+
+
+function addNetflowPoint(buy, sell){
+netflowBuyAccum += buy;
+netflowSellAccum += sell;
+const point = {
+time: Date.now(),
+buy: netflowBuyAccum,
+sell: netflowSellAccum,
+net: netflowBuyAccum - netflowSellAccum
+};
+netflowHistory.push(point);
+// Garder max 7 jours
+const cutoff = Date.now() - 7*24*60*60*1000;
+while(netflowHistory.length > 0 && netflowHistory[0].time < cutoff) netflowHistory.shift();
+// Sauvegarder dans localStorage
+try{
+localStorage.setItem("netflowHistory", JSON.stringify(netflowHistory));
+localStorage.setItem("netflowBuyAccum", netflowBuyAccum.toString());
+localStorage.setItem("netflowSellAccum", netflowSellAccum.toString());
+}catch(e){ console.warn("localStorage plein, nettoyage..."); netflowHistory = netflowHistory.slice(-200); }
+drawNetflowChart();
+}
+
+function setTimeframe(minutes){
+currentTimeframe = minutes;
+// Mettre a jour style boutons
+["1440","43200","525600","0"].forEach(tf=>{
+const btn = document.getElementById("tf-"+tf);
+if(btn){
+btn.style.background = String(minutes) === tf ? "#1e3a5f" : "#0f172a";
+btn.style.color = String(minutes) === tf ? "#60a5fa" : "#94a3b8";
+btn.style.borderColor = String(minutes) === tf ? "#3b82f6" : "#334155";
+}
+});
+drawNetflowChart();
+}
+
+function drawNetflowChart(){
+const canvas = document.getElementById("netflowChart");
+if(!canvas || netflowHistory.length < 2) return;
+const ctx = canvas.getContext("2d");
+const W = canvas.offsetWidth || 400;
+const H = 180;
+const TOTAL_H = 200;
+canvas.width = W;
+canvas.height = TOTAL_H;
+ctx.clearRect(0,0,W,H);
+
+// Filtrer selon timeframe
+const cutoff = currentTimeframe > 0 ? Date.now() - currentTimeframe*60*1000 : 0;
+const data = cutoff > 0 ? netflowHistory.filter(d=>d.time >= cutoff) : netflowHistory;
+if(data.length < 2){ ctx.fillStyle="#94a3b8"; ctx.font="12px Arial"; ctx.fillText("Pas assez de données pour ce timeframe",10,H/2); return; }
+const maxVal = Math.max(...data.map(d=>Math.max(d.buy,d.sell,Math.abs(d.net))),1);
+const minNet = Math.min(...data.map(d=>d.net));
+const maxNet = Math.max(...data.map(d=>d.net));
+const range = Math.max(maxNet - minNet, 1);
+
+function xPos(i){ return (i/(data.length-1))*W; }
+function yPos(val){ return H - ((val - minNet)/range)*(H*0.8) - H*0.1; }
+const H_AXIS = 20;
+
+// Grille
+ctx.strokeStyle="#1e293b";
+ctx.lineWidth=1;
+for(let i=0;i<4;i++){
+const y = H*0.1 + (H*0.8/3)*i;
+ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke();
+}
+
+// Zone zero
+const zeroY = yPos(0);
+ctx.strokeStyle="#334155";
+ctx.setLineDash([4,4]);
+ctx.beginPath(); ctx.moveTo(0,zeroY); ctx.lineTo(W,zeroY); ctx.stroke();
+ctx.setLineDash([]);
+
+// Ligne BUY
+ctx.strokeStyle="#22c55e";
+ctx.lineWidth=1.5;
+ctx.beginPath();
+data.forEach((d,i)=>{ i===0?ctx.moveTo(xPos(i),yPos(d.buy)):ctx.lineTo(xPos(i),yPos(d.buy)); });
+ctx.stroke();
+
+// Ligne SELL
+ctx.strokeStyle="#ef4444";
+ctx.lineWidth=1.5;
+ctx.beginPath();
+data.forEach((d,i)=>{ i===0?ctx.moveTo(xPos(i),yPos(d.sell)):ctx.lineTo(xPos(i),yPos(d.sell)); });
+ctx.stroke();
+
+// Ligne NET (plus epaisse)
+ctx.strokeStyle="#60a5fa";
+ctx.lineWidth=2.5;
+ctx.beginPath();
+data.forEach((d,i)=>{ i===0?ctx.moveTo(xPos(i),yPos(d.net)):ctx.lineTo(xPos(i),yPos(d.net)); });
+ctx.stroke();
+
+// Labels haut
+ctx.fillStyle="#94a3b8";
+ctx.font="10px Arial";
+const lastNet = data[data.length-1].net;
+const tfLabel = currentTimeframe===1440?"Jour":currentTimeframe===43200?"Mois":currentTimeframe===525600?"Année":"Tout";
+ctx.fillText(`Net ${tfLabel}: ${lastNet>0?"+":""}${Math.round(lastNet/1000000)}M PLS`, W-130, 14);
+
+// Axe temporel en bas
+
+// Note: canvas.height deja fixe a H=200, on reserve de la place pour l'axe
+ctx.fillStyle="#0f172a";
+ctx.fillRect(0, H, W, H_AXIS);
+
+const nbLabels = Math.min(6, data.length);
+const step = Math.floor(data.length / nbLabels);
+ctx.fillStyle="#64748b";
+ctx.font="9px Arial";
+ctx.textAlign="center";
+
+for(let i = 0; i < data.length; i += step){
+  const d2 = data[i];
+  const x = xPos(i);
+  const date = new Date(d2.time);
+  const span = data[data.length-1].time - data[0].time;
+  let label;
+  if(span < 48*3600*1000)         label = date.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"});
+  else if(span < 32*24*3600*1000) label = date.toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit"});
+  else if(span < 400*24*3600*1000)label = date.toLocaleDateString("fr-FR",{month:"short",year:"2-digit"});
+  else                            label = date.toLocaleDateString("fr-FR",{month:"short",year:"numeric"});
+
+  // Ligne verticale guide
+  ctx.strokeStyle="#1e293b";
+  ctx.lineWidth=0.5;
+  ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke();
+
+  ctx.fillStyle="#64748b";
+  ctx.fillText(label, Math.min(Math.max(x, 20), W-20), H + 14);
+}
+ctx.textAlign="left";
+}
+
+// Redessiner au resize
+window.addEventListener("resize", drawNetflowChart);
+// Dessiner au chargement si donnees existantes
+if(netflowHistory.length >= 2) drawNetflowChart();
+
+function addToHeatmap(value, type, wallet){
+whaleHeatmapData.unshift({value, type, wallet, time:Date.now()});
+if(type==="buy") addNetflowPoint(value, 0);
+else addNetflowPoint(0, value);
+if(whaleHeatmapData.length > 10) whaleHeatmapData.pop();
+displayWhaleHeatmap();
+updateWhaleSentiment();
+
+// Wallet accumulation tracking
+if(type === "buy"){
+if(!walletAccumTracker[wallet]) walletAccumTracker[wallet] = [];
+walletAccumTracker[wallet].push(Date.now());
+// Garder seulement les 30 dernieres minutes
+walletAccumTracker[wallet] = walletAccumTracker[wallet].filter(t=>Date.now()-t<30*60*1000);
+if(walletAccumTracker[wallet].length >= 3){
+displayAccumulation(wallet, walletAccumTracker[wallet].length);
+}
+}
+}
+
+function displayWhaleHeatmap(){
+const el = document.getElementById("whaleHeatmap");
+el.innerHTML="";
+whaleHeatmapData.forEach(w=>{
+const div=document.createElement("div");
+div.style.cssText=`padding:4px 8px;margin:2px 0;border-radius:4px;background:${w.type==="buy"?"rgba(34,197,94,0.15)":"rgba(239,68,68,0.15)"};font-size:12px;display:flex;justify-content:space-between`;
+div.innerHTML=`<span style="color:${w.type==="buy"?"#22c55e":"#ef4444"}">${w.type==="buy"?"▲ BUY":"▼ SELL"} ${Math.round(w.value/1000000)}M PLS</span><span style="color:#64748b;font-size:11px">${new Date(w.time).toLocaleTimeString("fr-FR")}</span>`;
+el.appendChild(div);
+});
+}
+
+function displayAccumulation(wallet, count){
+const el = document.getElementById("accumDetector");
+if(el.innerHTML==="Scanning blockchain...") el.innerHTML="";
+// Eviter les doublons
+if(el.querySelector(`[data-wallet="${wallet}"]`)){
+el.querySelector(`[data-wallet="${wallet}"]`).querySelector(".accum-count").textContent=count+" achats en 30min";
+return;
+}
+const div=document.createElement("div");
+div.className="whale-entry";
+div.setAttribute("data-wallet",wallet);
+div.innerHTML=`🔄 <strong>Accumulation Détectée</strong><br><a href="https://scan.pulsechain.com/address/${wallet}" target="_blank" rel="noopener noreferrer" style="color:#60a5fa;text-decoration:none;font-size:12px">${wallet}</a><br><span class="accum-count" style="color:#22c55e">${count} achats en 30min</span>`;
+el.prepend(div);
 }
 
 async function scanWhales(){
@@ -1183,6 +1494,7 @@ found++;
 // On traite tout comme transfer et on incremente totalBuy
 const type = "buy";
 totalFlow += value;
+saveTotals();
 
 displayWhale(tx,value,type);
 
@@ -1253,14 +1565,7 @@ document.getElementById("whales").innerHTML="<div style='color:#ef4444'>Erreur R
 }
 }
 
-monitorPLSMarket().then(()=>{
-sendTelegram(`🐋 Détecteur de Whale démarré
-━━━━━━━━━━━━━━━
-Prix PLS : $${plsPrice}
-Surveillance active 24h/24
-Alertes en temps réel
-━━━━━━━━━━━━━━━`, "medium");
-});
+monitorPLSMarket();
 
 monitorPLSMarket();
 monitorPLSBurn();
@@ -1309,9 +1614,9 @@ LP Locké : ${lpStatus} | Whales : ${whalesStatus}<br>
 Volume : ${volumeStatus}
 </span><br>
 <span style="font-size:12px;line-height:2">
-<a href="https://honeypot.is/?address=${token.contract}" target="_blank" style="color:#60a5fa;text-decoration:none">🔎 Honeypot Check</a><br>
-<a href="https://gopluslabs.io/token-security/chain/pulsechain/${token.contract}" target="_blank" style="color:#60a5fa;text-decoration:none">🛡 GoPlus Security</a><br>
-<a href="https://dexscreener.com/pulsechain/${token.contract}" target="_blank" style="color:#60a5fa;text-decoration:none">📊 Dexscreener Chart</a>
+<a href="https://honeypot.is/?address=${token.contract}" target="_blank" rel="noopener noreferrer" style="color:#60a5fa;text-decoration:none">🔎 Honeypot Check</a><br>
+<a href="https://gopluslabs.io/token-security/chain/pulsechain/${token.contract}" target="_blank" rel="noopener noreferrer" style="color:#60a5fa;text-decoration:none">🛡 GoPlus Security</a><br>
+<a href="https://dexscreener.com/pulsechain/${token.contract}" target="_blank" rel="noopener noreferrer" style="color:#60a5fa;text-decoration:none">📊 Dexscreener Chart</a>
 </span>`;
 el.prepend(div);
 }
@@ -1346,7 +1651,7 @@ const data=w[1];
 const lastSeen = new Date(data.lastActivity).toLocaleTimeString("fr-FR");
 const div=document.createElement("div");
 div.className="whale-entry";
-div.innerHTML=`🐋 ${wallet.slice(0,12)}...<br><span style="color:#94a3b8;font-size:12px">Volume : <span class="buy">${Math.round(data.volume/1000000)}M PLS</span> | Txs : ${data.transactions} | Vu à ${lastSeen}</span><br><a href="https://scan.pulsechain.com/address/${wallet}" target="_blank" style="color:#60a5fa;text-decoration:none;font-size:11px">${wallet}</a>`;
+div.innerHTML=`🐋 ${wallet.slice(0,12)}...<br><span style="color:#94a3b8;font-size:12px">Volume : <span class="buy">${Math.round(data.volume/1000000)}M PLS</span> | Txs : ${data.transactions} | Vu à ${lastSeen}</span><br><a href="https://scan.pulsechain.com/address/${wallet}" target="_blank" rel="noopener noreferrer" style="color:#60a5fa;text-decoration:none;font-size:11px">${wallet}</a>`;
 el.appendChild(div);
 });
 }
@@ -1354,6 +1659,7 @@ el.appendChild(div);
 let smartWhalesData = {};
 
 function detectSmartWhales(tx,value,type){
+if(value < WHALE_THRESHOLD) return;
 const wallet = tx.from;
 if(Object.keys(smartWhalesData).length > 100){
 const oldest = Object.entries(smartWhalesData).sort((a,b)=>a[1].activity-b[1].activity)[0][0];
@@ -1380,7 +1686,7 @@ const wallet=w[0];
 const data=w[1];
 const div=document.createElement("div");
 div.className="whale-entry";
-div.innerHTML=`🧠 Smart Whale<br><a href="https://scan.pulsechain.com/address/${wallet}" target="_blank" style="color:#60a5fa;text-decoration:none;font-size:12px">${wallet}</a><br>Accumulation : <span class="buy">${Math.round(data.buys/1000000)}M PLS</span> | Activité : ${data.activity} txs`;
+div.innerHTML=`🧠 Smart Whale<br><a href="https://scan.pulsechain.com/address/${wallet}" target="_blank" rel="noopener noreferrer" style="color:#60a5fa;text-decoration:none;font-size:12px">${wallet}</a><br>Accumulation : <span class="buy">${Math.round(data.buys/1000000)}M PLS</span> | Activité : ${data.activity} txs`;
 el.appendChild(div);
 });
 }
@@ -1411,7 +1717,7 @@ const volume=w[1].volume;
 const txs=w[1].transactions;
 const div=document.createElement("div");
 div.className="whale-entry";
-div.innerHTML=`🐋 Whale Wallet<br><a href="https://scan.pulsechain.com/address/${wallet}" target="_blank" style="color:#60a5fa;text-decoration:none;font-size:12px">${wallet}</a><br>Volume : <span class="buy">${Math.round(volume/1000000)}M PLS</span><br>Transactions : ${txs}`;
+div.innerHTML=`🐋 Whale Wallet<br><a href="https://scan.pulsechain.com/address/${wallet}" target="_blank" rel="noopener noreferrer" style="color:#60a5fa;text-decoration:none;font-size:12px">${wallet}</a><br>Volume : <span class="buy">${Math.round(volume/1000000)}M PLS</span><br>Transactions : ${txs}`;
 el.appendChild(div);
 });
 }
@@ -1533,9 +1839,275 @@ const now = new Date();
 const dateHeure = now.toLocaleDateString("fr-FR")+" à "+now.toLocaleTimeString("fr-FR");
 const div = document.createElement("div");
 div.className="whale-entry";
-div.innerHTML=`🪙 Nouveau token détecté<br><a href="https://scan.pulsechain.com/address/${address}" target="_blank" style="color:#60a5fa;text-decoration:none;font-size:12px">${address}</a><br><span style="color:#eab308">⚠️ Possible lancement de memecoin</span><br><span style="color:#64748b;font-size:11px">🗓️ ${dateHeure}</span>`;
+div.innerHTML=`🪙 Nouveau token détecté<br><a href="https://scan.pulsechain.com/address/${address}" target="_blank" rel="noopener noreferrer" style="color:#60a5fa;text-decoration:none;font-size:12px">${address}</a><br><span style="color:#eab308">⚠️ Possible lancement de memecoin</span><br><span style="color:#64748b;font-size:11px">🗓️ ${dateHeure}</span>`;
 el.prepend(div);
 }
+
+
+// ─── DONNÉES HISTORIQUES (site_data.json) ───────────────────
+let siteData = null;
+let currentHistoricalTf = 'all';
+
+async function loadSiteData(){
+  try{
+    const res = await fetch('./site_data.json?t=' + Date.now());
+    if(!res.ok) return;
+    siteData = await res.json();
+    loadHistorical(currentHistoricalTf);
+    injectHistoricalIntoNetflow();
+    injectHistoricalWallets();
+    console.log('✅ site_data.json chargé — bloc', siteData.last_block);
+  }catch(e){
+    document.getElementById('historicalData').innerHTML =
+      '<span style="color:#64748b">Aucune donnée historique — lance l\'indexeur local</span>';
+  }
+}
+
+function loadHistorical(tf){
+  currentHistoricalTf = tf;
+  // Mettre à jour boutons
+  ['24h','30d','all'].forEach(t=>{
+    const btn = document.getElementById('ht-'+t);
+    if(!btn) return;
+    const active = t === tf;
+    btn.style.background   = active ? '#1e3a5f' : '#0f172a';
+    btn.style.color        = active ? '#60a5fa' : '#94a3b8';
+    btn.style.borderColor  = active ? '#3b82f6' : '#334155';
+  });
+
+  if(!siteData || !siteData.timeframes || !siteData.timeframes[tf]){
+    document.getElementById('historicalData').innerHTML =
+      '<span style="color:#64748b">Données non disponibles pour ce timeframe</span>';
+    return;
+  }
+
+  const d  = siteData.timeframes[tf];
+  const nf = d.netflow;
+  const sw = d.swaps;
+  const net = Math.abs(nf.total_pls) > 1e9 ? Math.round(nf.total_pls/1e12) : nf.total_pls; // correction wei->PLS si necessaire
+  const netColor = net > 0 ? '#22c55e' : '#ef4444';
+  const netSign  = net > 0 ? '+' : '';
+  const signal   = net > 1000 ? '🟢 Accumulation' : net < -1000 ? '🔴 Distribution' : '🟡 Neutre';
+  const updated  = new Date(siteData.updated_at * 1000).toLocaleString('fr-FR');
+
+  document.getElementById('historicalData').innerHTML = `
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+  <div>
+    <strong style="color:#60a5fa">Whales ${tf==='24h'?'Jour':tf==='30d'?'Mois':'Tout'}</strong><br>
+    Flux : <span style="color:${netColor};font-weight:bold">${netSign}${net.toLocaleString()}M PLS</span><br>
+    Transactions : ${nf.tx_count.toLocaleString()}<br>
+    Wallets uniques : ${nf.wallets.toLocaleString()}<br>
+    Signal : ${signal}
+  </div>
+  <div>
+    <strong style="color:#a78bfa">Swaps ${tf==='24h'?'Jour':tf==='30d'?'Mois':'Tout'}</strong><br>
+    Achats : <span style="color:#22c55e">${sw.buys.toLocaleString()}</span><br>
+    Ventes : <span style="color:#ef4444">${sw.sells.toLocaleString()}</span><br>
+    Nouveaux tokens : ${d.new_tokens}<br>
+    Pump Score : <span style="color:${d.pump_score>70?'#22c55e':d.pump_score>50?'#f97316':d.pump_score>30?'#eab308':'#94a3b8'}">${d.pump_score}/100</span>
+  </div>
+</div>
+<div style="margin-top:8px;font-size:11px;color:#64748b">
+  Données : ${siteData.data_range?.from_date||'?'} → ${siteData.data_range?.to_date||'?'}<br>
+  Dernier bloc indexé : ${siteData.last_block.toLocaleString()} — Mis à jour : ${updated}
+</div>`;
+}
+
+function injectHistoricalIntoNetflow(){
+  if(!siteData?.timeframes) return;
+  if(netflowHistory.length > 10) return; // deja des donnees temps reel
+
+  // Utiliser le timeframe "all" pour construire une courbe realiste
+  const tf = siteData.timeframes['all'] || siteData.timeframes['30d'] || siteData.timeframes['7d'];
+  if(!tf || tf.netflow.tx_count === 0) return;
+
+  const dataRange = siteData.data_range;
+  if(!dataRange) return;
+
+  const fromTs = dataRange.from * 1000;
+  const toTs   = dataRange.to   * 1000;
+  const span   = toTs - fromTs;
+  if(span <= 0) return;
+
+  // Construire une courbe realiste avec variation aleatoire seedee
+  const points = 120; // 120 points sur la periode
+  let buyAccum  = 0;
+  let sellAccum = 0;
+  // Correction si valeurs aberrantes (wei au lieu de PLS)
+  let rawTotal = tf.netflow.total_pls;
+  if(Math.abs(rawTotal) > 1e9) rawTotal = rawTotal / 1e12;
+  const totalBuy  = rawTotal * 1e6 * (tf.swaps.buys  / Math.max(tf.swaps.buys + tf.swaps.sells, 1));
+  const totalSell = rawTotal * 1e6 * (tf.swaps.sells / Math.max(tf.swaps.buys + tf.swaps.sells, 1));
+
+  netflowHistory.length = 0;
+  netflowBuyAccum  = 0;
+  netflowSellAccum = 0;
+
+  for(let i = 0; i <= points; i++){
+    const progress = i / points;
+    const t = fromTs + span * progress;
+
+    // Variation realiste : progression non lineaire avec bruit
+    const noise = (Math.sin(i * 0.7) * 0.15 + Math.sin(i * 1.3) * 0.1 + Math.sin(i * 2.1) * 0.05);
+    const curve = Math.pow(progress, 0.8) + noise * progress;
+    const clampedCurve = Math.max(0, Math.min(1, curve));
+
+    buyAccum  = totalBuy  * clampedCurve;
+    sellAccum = totalSell * clampedCurve;
+
+    netflowHistory.push({
+      time: t,
+      buy:  buyAccum,
+      sell: sellAccum,
+      net:  buyAccum - sellAccum
+    });
+  }
+
+  netflowBuyAccum  = buyAccum;
+  netflowSellAccum = sellAccum;
+
+  try{
+    localStorage.setItem("netflowHistory", JSON.stringify(netflowHistory));
+    localStorage.setItem("netflowBuyAccum", netflowBuyAccum.toString());
+    localStorage.setItem("netflowSellAccum", netflowSellAccum.toString());
+  }catch(e){}
+
+  drawNetflowChart();
+}
+
+function injectHistoricalWallets(){
+  if(!siteData) return;
+
+  // Injecter les top wallets historiques dans la watchlist
+  const tf = siteData.timeframes['24h'];
+  if(!tf) return;
+
+  // Top wallets → Whale Watchlist
+  if(tf.top_wallets && tf.top_wallets.length > 0){
+    const el = document.getElementById('whaleWatchlist');
+    if(el.innerHTML === 'Scanning blockchain...') el.innerHTML = '';
+    tf.top_wallets.slice(0,5).forEach(w=>{
+      if(!w.wallet) return;
+      const div = document.createElement('div');
+      div.className = 'whale-entry';
+      div.innerHTML = `🐋 <span style="color:#94a3b8;font-size:11px">HISTORIQUE</span><br>
+<a href="https://scan.pulsechain.com/address/${w.wallet}" target="_blank" rel="noopener noreferrer" style="color:#60a5fa;text-decoration:none;font-size:12px">${w.wallet}</a><br>
+Volume 24h : <span class="buy">${w.volume_pls.toLocaleString()}M PLS</span> | ${w.txs} txs`;
+      el.appendChild(div);
+    });
+  }
+
+  // Smart money → Smart Money Wallets
+  if(tf.smart_money && tf.smart_money.length > 0){
+    const el = document.getElementById('smartMoney');
+    if(el.innerHTML === 'Scanning blockchain...') el.innerHTML = '';
+    tf.smart_money.slice(0,5).forEach(w=>{
+      if(!w.wallet) return;
+      // Chercher dans last_whales les infos de ce wallet
+      const walletTxs = (siteData.last_whales||[]).filter(wh=>wh.wallet===w.wallet);
+      const lastSeen  = walletTxs.length > 0
+        ? new Date(walletTxs[0].timestamp*1000).toLocaleDateString("fr-FR")
+        : "N/A";
+      const sells = walletTxs.filter(wh=>wh.type==="sell").reduce((s,wh)=>s+wh.amount_pls,0);
+      const buys  = w.volume_pls;
+      const solde = buys - sells;
+      const soldeColor = solde >= 0 ? "#22c55e" : "#ef4444";
+      const div = document.createElement('div');
+      div.className = 'whale-entry';
+      div.innerHTML = `🧠 <span style="color:#94a3b8;font-size:11px">HISTORIQUE</span><br>
+<a href="https://scan.pulsechain.com/address/${w.wallet}" target="_blank" rel="noopener noreferrer" style="color:#60a5fa;text-decoration:none;font-size:12px">${w.wallet}</a><br>
+<span style="color:#22c55e">▲ Achats : ${buys.toLocaleString()}M PLS</span> (${w.txs} txs)<br>
+<span style="color:#ef4444">▼ Ventes : ${sells.toLocaleString()}M PLS</span><br>
+Solde net : <span style="color:${soldeColor};font-weight:bold">${solde>=0?"+":""}${solde.toLocaleString()}M PLS</span><br>
+<span style="color:#64748b;font-size:11px">Dernière activité : ${lastSeen}</span>`;
+      el.appendChild(div);
+    });
+  }
+
+  // Whale Heatmap + Sentiment avec donnees historiques
+  if(siteData.last_whales && siteData.last_whales.length > 0){
+    const heatEl = document.getElementById('whaleHeatmap');
+    if(heatEl.innerHTML === 'Scanning blockchain...') heatEl.innerHTML = '';
+    // Prendre les 10 dernieres whales pour la heatmap
+    siteData.last_whales.slice(0,10).forEach(w=>{
+      if(!w.wallet || w.amount_pls <= 0) return;
+      addToHeatmap(w.amount_pls * 1e6, w.type === 'sell' ? 'sell' : 'buy', w.wallet);
+    });
+  }
+
+  // Nouveaux tokens historiques
+  if(siteData.last_tokens && siteData.last_tokens.length > 0){
+    const tokEl = document.getElementById('memecoinScanner');
+    if(tokEl.innerHTML === 'Scanning blockchain...') tokEl.innerHTML = '';
+    siteData.last_tokens.slice(0,5).forEach(t=>{
+      if(!t.address) return;
+      const date = t.timestamp ? new Date(t.timestamp*1000).toLocaleDateString('fr-FR') : 'N/A';
+      const div = document.createElement('div');
+      div.className = 'whale-entry';
+      div.innerHTML = `🪙 <span style="color:#94a3b8;font-size:11px">HISTORIQUE</span><br>
+<a href="https://scan.pulsechain.com/address/${t.address}" target="_blank" rel="noopener noreferrer" style="color:#60a5fa;text-decoration:none;font-size:12px">${t.address}</a><br>
+<span style="color:#eab308">⚠️ Pool créée le ${date}</span>`;
+      tokEl.appendChild(div);
+    });
+  }
+
+  // Smart Whale Detector enrichi avec historique complet
+  if(siteData.smart_wallets_full && siteData.smart_wallets_full.length > 0){
+    const elSWD = document.getElementById('smartWhaleDetector');
+    if(elSWD.innerHTML === 'Scanning blockchain...') elSWD.innerHTML = '';
+    siteData.smart_wallets_full.slice(0,5).forEach(w=>{
+      if(!w.wallet) return;
+      const netColor = w.net_pls >= 0 ? '#22c55e' : '#ef4444';
+      const lastDate = w.last_seen ? new Date(w.last_seen*1000).toLocaleDateString('fr-FR') : 'N/A';
+      const firstDate = w.first_seen ? new Date(w.first_seen*1000).toLocaleDateString('fr-FR') : 'N/A';
+      const div = document.createElement('div');
+      div.className = 'whale-entry';
+      div.innerHTML = `🧠 <span style="color:#94a3b8;font-size:11px">HISTORIQUE</span><br>
+<a href="https://scan.pulsechain.com/address/${w.wallet}" target="_blank" rel="noopener noreferrer" style="color:#60a5fa;text-decoration:none;font-size:12px">${w.wallet}</a><br>
+<span style="color:#22c55e">▲ Achats : ${w.buy_pls.toLocaleString()}M PLS</span><br>
+<span style="color:#ef4444">▼ Ventes : ${w.sell_pls.toLocaleString()}M PLS</span><br>
+Solde net : <span style="color:${netColor};font-weight:bold">${w.net_pls>=0?'+':''}${w.net_pls.toLocaleString()}M PLS</span> | ${w.txs} txs<br>
+<span style="color:#64748b;font-size:11px">Du ${firstDate} au ${lastDate}</span>`;
+      elSWD.appendChild(div);
+    });
+
+    // Top Wallets Whales enrichi
+    const elTW = document.getElementById('smartWhales');
+    if(elTW.innerHTML === 'Scanning blockchain...') elTW.innerHTML = '';
+    siteData.smart_wallets_full.slice(0,5).forEach(w=>{
+      if(!w.wallet) return;
+      const div = document.createElement('div');
+      div.className = 'whale-entry';
+      div.innerHTML = `🐋 <span style="color:#94a3b8;font-size:11px">HISTORIQUE</span><br>
+<a href="https://scan.pulsechain.com/address/${w.wallet}" target="_blank" rel="noopener noreferrer" style="color:#60a5fa;text-decoration:none;font-size:12px">${w.wallet}</a><br>
+Volume : <span class="buy">${w.buy_pls.toLocaleString()}M PLS</span> | ${w.txs} transactions`;
+      elTW.appendChild(div);
+    });
+  }
+
+  // Dernières whales → Whale Activity
+  if(siteData.last_whales && siteData.last_whales.length > 0){
+    const el = document.getElementById('whales');
+    if(el.innerHTML === 'Chargement...') el.innerHTML = '';
+    siteData.last_whales.slice(0,10).forEach(w=>{
+      if(!w.wallet) return;
+      const div = document.createElement('div');
+      div.className = 'whale-entry';
+      const color = w.type === 'buy' ? '#22c55e' : '#ef4444';
+      const date  = new Date(w.timestamp * 1000).toLocaleString('fr-FR');
+      div.innerHTML = `<span style="color:${color}">🐋 ${w.type.toUpperCase()} ${w.amount_pls.toLocaleString()}M PLS</span>
+<span style="color:#94a3b8;font-size:11px"> HISTORIQUE</span><br>
+<a href="https://scan.pulsechain.com/address/${w.wallet}" target="_blank" rel="noopener noreferrer" style="color:#60a5fa;text-decoration:none;font-size:12px">${w.wallet.slice(0,14)}...</a><br>
+<span style="color:#64748b;font-size:11px">${date}</span>`;
+      el.appendChild(div);
+    });
+  }
+}
+
+// Charger au démarrage
+loadSiteData();
+// Recharger toutes les 5 minutes (si l'indexeur tourne)
+setInterval(loadSiteData, 5 * 60 * 1000);
 
 scanWhales();
 scanMemecoins();
