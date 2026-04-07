@@ -6,26 +6,370 @@
 <title>Détecteur de Whale</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:#0f172a;color:white;font-family:Arial,sans-serif;text-align:center;min-height:100vh;}
-.container{max-width:900px;margin:auto;padding:16px;}
-h1{font-size:clamp(1.2rem,5vw,2rem);padding:16px 0;}
-h2{font-size:clamp(0.95rem,4vw,1.3rem);margin-bottom:12px;}
-.card{background:#1e293b;padding:16px;margin:10px 0;border-radius:12px;}
-.buy{color:#22c55e;}
-.sell{color:#ef4444;}
-.whale-entry{padding:8px 0;border-bottom:1px solid #334155;font-size:clamp(12px,3.5vw,14px);text-align:left;}
-#whales{max-height:260px;overflow-y:auto;}
-#accumulation{font-size:clamp(13px,3.5vw,15px);line-height:2;}
-#pumpSignal{font-size:clamp(14px,4vw,18px);font-weight:bold;padding:8px 0;}
-.aide{background:#0f2744;border-left:3px solid #3b82f6;border-radius:8px;padding:12px;margin-top:14px;text-align:left;font-size:clamp(11px,3vw,13px);color:#94a3b8;line-height:1.7;}
-.aide-titre{color:#60a5fa;font-weight:bold;margin-bottom:6px;font-size:clamp(11px,3vw,13px);}
+
+:root{
+  --bg:#080e1a;
+  --bg2:#0f172a;
+  --card:#111827;
+  --card2:#1a2235;
+  --border:#1e2d45;
+  --blue:#3b82f6;
+  --blue-light:#60a5fa;
+  --green:#22c55e;
+  --red:#ef4444;
+  --orange:#f97316;
+  --yellow:#eab308;
+  --purple:#a78bfa;
+  --muted:#64748b;
+  --text:#e2e8f0;
+  --text2:#94a3b8;
+}
+
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Segoe UI',system-ui,sans-serif;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ── Header ── */
+.header{
+  background:linear-gradient(135deg,#0a1628 0%,#0f1f3d 50%,#0a1628 100%);
+  border-bottom:1px solid #1e3a5f;
+  padding:20px 16px;
+  text-align:center;
+  position:sticky;top:0;z-index:100;
+  backdrop-filter:blur(10px);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+}
+.header h1{
+  font-size:clamp(1.3rem,5vw,2rem);
+  font-weight:800;
+  background:linear-gradient(90deg,#60a5fa,#a78bfa,#60a5fa);
+  background-size:200%;
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  animation:shimmer 3s linear infinite;
+  margin:0;
+  letter-spacing:1px;
+}
+.header-sub{
+  font-size:12px;
+  color:var(--muted);
+  margin-top:6px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+}
+@keyframes shimmer{0%{background-position:0%}100%{background-position:200%}}
+
+/* ── Live indicator ── */
+.live-dot{
+  display:inline-block;width:7px;height:7px;
+  background:var(--green);border-radius:50%;
+  margin-right:5px;
+  animation:pulse-dot 1.5s ease-in-out infinite;
+}
+@keyframes pulse-dot{
+  0%,100%{opacity:1;transform:scale(1)}
+  50%{opacity:.4;transform:scale(.7)}
+}
+
+/* ── Layout ── */
+.container{
+  max-width:1000px;
+  margin:0 auto;
+  padding:16px 12px 40px;
+  width:100%;
+}
+
+/* ── Grid 2 colonnes sur desktop ── */
+.grid-2{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+@media(max-width:600px){.grid-2{grid-template-columns:1fr;}}
+
+/* ── Cards ── */
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:16px;
+  margin:10px 0;
+  transition:all .2s;
+  position:relative;
+  overflow:hidden;
+}
+.card::before{
+  content:'';
+  position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--blue),transparent);
+  opacity:0;
+  transition:opacity .3s;
+}
+.card:hover::before{opacity:1;}
+.card h2{
+  font-size:clamp(13px,3.5vw,16px);
+  font-weight:700;
+  color:var(--text);
+  margin:0 0 12px 0;
+  text-align:center;
+}
+.card-blue{border-color:#1e3a5f;}
+.card-green{border-color:#14532d;}
+.card-red{border-color:#7f1d1d;}
+.card-purple{border-color:#3b1f6e;}
+
+/* ── Card header ── */
+.card-header{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin-bottom:12px;
+  padding-bottom:8px;
+  border-bottom:1px solid var(--border);
+}
+.card-title{
+  font-size:clamp(12px,3.5vw,14px);
+  font-weight:600;
+  color:var(--text);
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.card-badge{
+  font-size:10px;
+  padding:2px 7px;
+  border-radius:20px;
+  font-weight:600;
+  letter-spacing:.5px;
+}
+.badge-live{background:rgba(34,197,94,.15);color:var(--green);border:1px solid rgba(34,197,94,.3);}
+.badge-hot{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3);}
+.badge-new{background:rgba(59,130,246,.15);color:var(--blue-light);border:1px solid rgba(59,130,246,.3);}
+
+/* ── Stat boxes ── */
+.stat-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-bottom:8px;
+}
+.stat-box{
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:10px;
+  text-align:center;
+}
+.stat-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;}
+.stat-value{font-size:clamp(13px,3.5vw,16px);font-weight:700;}
+
+/* ── Score ring ── */
+.score-wrap{text-align:center;padding:12px 0;}
+.score-big{
+  font-size:clamp(2.2rem,8vw,3.2rem);
+  font-weight:800;
+  line-height:1;
+  margin:8px 0 6px;
+  text-align:center;
+}
+.score-label{font-size:clamp(12px,3vw,14px);margin-bottom:4px;text-align:center;}
+.score-detail{font-size:11px;color:var(--muted);text-align:center;}
+
+/* ── Buttons ── */
+.btn-group{display:flex;gap:5px;margin-bottom:10px;}
+.btn-tf{
+  flex:1;
+  padding:6px 4px;
+  background:var(--bg2);
+  color:var(--text2);
+  border:1px solid var(--border);
+  border-radius:8px;
+  cursor:pointer;
+  font-size:11px;
+  font-weight:500;
+  transition:all .15s;
+  font-family:inherit;
+}
+.btn-tf:hover{background:#1e293b;color:var(--text);}
+.btn-tf.active{
+  background:#1e3a5f;
+  color:var(--blue-light);
+  border-color:var(--blue);
+}
+
+/* ── Entries ── */
+.whale-entry{
+  padding:8px 0;
+  border-bottom:1px solid #0f1a2e;
+  font-size:clamp(11px,3vw,13px);
+  text-align:left;
+  line-height:1.6;
+}
+.whale-entry:last-child{border-bottom:none;}
+
+.entry-buy{
+  background:rgba(34,197,94,.05);
+  border-left:3px solid var(--green);
+  padding:6px 8px;
+  border-radius:0 6px 6px 0;
+  margin:3px 0;
+}
+.entry-sell{
+  background:rgba(239,68,68,.05);
+  border-left:3px solid var(--red);
+  padding:6px 8px;
+  border-radius:0 6px 6px 0;
+  margin:3px 0;
+}
+.entry-transfer{
+  background:rgba(59,130,246,.05);
+  border-left:3px solid var(--blue);
+  padding:6px 8px;
+  border-radius:0 6px 6px 0;
+  margin:3px 0;
+}
+
+/* ── Scrollable lists ── */
+.scroll-list{
+  max-height:240px;
+  overflow-y:auto;
+  scrollbar-width:thin;
+  scrollbar-color:var(--border) transparent;
+}
+.scroll-list::-webkit-scrollbar{width:4px;}
+.scroll-list::-webkit-scrollbar-track{background:transparent;}
+.scroll-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+
+/* ── Heatmap ── */
+.heatmap-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:5px 8px;
+  border-radius:6px;
+  margin:3px 0;
+  font-size:12px;
+}
+
+/* ── Market grid ── */
+.market-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+.market-token{
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:10px;
+}
+.market-name{font-size:13px;font-weight:700;margin-bottom:6px;}
+.market-price{font-size:clamp(14px,4vw,18px);font-weight:800;margin-bottom:4px;}
+.market-row{font-size:11px;color:var(--text2);margin:2px 0;display:flex;justify-content:space-between;}
+
+/* ── Aide ── */
+.aide{
+  background:rgba(15,39,68,.6);
+  border-left:2px solid var(--blue);
+  border-radius:0 8px 8px 0;
+  padding:10px 12px;
+  margin-top:12px;
+  font-size:11px;
+  color:var(--text2);
+  line-height:1.7;
+}
+.aide summary{
+  color:var(--blue-light);
+  font-weight:600;
+  cursor:pointer;
+  font-size:11px;
+  list-style:none;
+  display:flex;
+  align-items:center;
+  gap:4px;
+}
+.aide summary::before{content:'▶';font-size:9px;transition:transform .2s;}
+details[open] .aide summary::before{transform:rotate(90deg);}
+.aide-body{margin-top:6px;}
 .aide-ligne{margin:2px 0;}
-.group-title{color:#60a5fa;font-size:clamp(10px,2.5vw,12px);font-weight:bold;text-transform:uppercase;letter-spacing:2px;padding:16px 0 4px;opacity:0.7;}
+
+/* ── Group title ── */
+.group-title{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  color:var(--blue-light);
+  font-size:12px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:2px;
+  padding:28px 0 12px;
+  opacity:.9;
+  margin-top:8px;
+}
+.group-title::after{
+  content:'';
+  flex:1;
+  height:1px;
+  background:linear-gradient(90deg,var(--border),transparent);
+}
+
+/* ── Misc ── */
+.buy{color:var(--green);}
+.sell{color:var(--red);}
+.neutral{color:var(--yellow);}
+a{color:var(--blue-light);text-decoration:none;}
+a:hover{text-decoration:underline;}
+
+.tag{
+  display:inline-block;
+  font-size:10px;
+  padding:1px 6px;
+  border-radius:4px;
+  font-weight:600;
+  margin-left:4px;
+}
+.tag-hist{background:rgba(148,163,184,.1);color:var(--text2);}
+.tag-live{background:rgba(34,197,94,.1);color:var(--green);}
+
+/* ── Animations entrée ── */
+@keyframes fadeIn{
+  from{opacity:0;transform:translateY(6px)}
+  to{opacity:1;transform:translateY(0)}
+}
+.card{animation:fadeIn .3s ease both;}
+
+/* ── Mobile ── */
+@media(max-width:480px){
+  .container{padding:12px 8px 32px;}
+  .header{padding:16px 12px;}
+  .header h1{font-size:1.4rem;}
+  .card{padding:14px;border-radius:10px;margin:8px 0;}
+  .score-big{font-size:2.2rem;}
+  .market-grid{grid-template-columns:1fr 1fr;gap:6px;}
+  .stat-grid{gap:6px;}
+  .btn-tf{padding:5px 2px;font-size:10px;}
+  .group-title{padding:20px 0 10px;font-size:11px;}
+}
 </style>
 </head>
 <body>
-<div class="container">
+<div class="header">
   <h1>🐋 Détecteur de Whale</h1>
+  <div class="header-sub"><span class="live-dot"></span>LIVE MONITORING</div>
+</div>
+<div class="container">
 
   <div class="card" style="border:1px solid #3b82f6;">
     <h2>📊 PulseChain Market Monitor</h2>
@@ -88,10 +432,10 @@ h2{font-size:clamp(0.95rem,4vw,1.3rem);margin-bottom:12px;}
 
   <div class="card">
     <h2>🧠 Whale Sentiment Score</h2>
-    <div id="whaleSentiment" style="text-align:center;padding:8px 0;">
-      <div id="sentimentScore" style="font-size:clamp(1.5rem,6vw,2.5rem);font-weight:bold;">--/100</div>
-      <div id="sentimentLabel" style="font-size:clamp(12px,3vw,14px);color:#94a3b8;">Calcul en cours...</div>
-      <div id="sentimentDetail" style="font-size:clamp(11px,2.5vw,13px);color:#64748b;margin-top:4px;"></div>
+    <div id="whaleSentiment" style="text-align:center;padding:12px 0;">
+      <div id="sentimentScore" style="font-size:clamp(2rem,8vw,3rem);font-weight:bold;text-align:center;margin:8px 0;">--/100</div>
+      <div id="sentimentLabel" style="font-size:clamp(12px,3vw,14px);color:#94a3b8;text-align:center;margin:4px 0;">Calcul en cours...</div>
+      <div id="sentimentDetail" style="font-size:clamp(11px,2.5vw,13px);color:#64748b;margin-top:4px;text-align:center;"></div>
     </div>
     <div class="aide">
       <div class="aide-titre">📖 Comment interpréter ?</div>
@@ -103,7 +447,7 @@ h2{font-size:clamp(0.95rem,4vw,1.3rem);margin-bottom:12px;}
 
   <div class="card">
     <h2>🌡️ Whale Heatmap</h2>
-    <div id="whaleHeatmap" style="max-height:200px;overflow-y:auto;">Scanning blockchain...</div>
+    <div id="whaleHeatmap" style="max-height:200px;overflow-y:auto;text-align:center;">Scanning blockchain...</div>
     <div class="aide">
       <div class="aide-titre">📖 Comment interpréter ?</div>
       <div class="aide-ligne">Les 10 dernières transactions whales. Visualisez la tendance immédiate.</div>
@@ -115,7 +459,7 @@ h2{font-size:clamp(0.95rem,4vw,1.3rem);margin-bottom:12px;}
 
   <div class="card">
     <h2>Activité des Whales</h2>
-    <div id="whales">Chargement...</div>
+    <div id="whales" style="text-align:center;">Chargement...</div>
     <div class="aide">
       <div class="aide-titre">📖 Comment interpréter ces données ?</div>
       <div class="aide-ligne">Les whales sont des portefeuilles qui déplacent de très grandes quantités de PLS.</div>
@@ -127,7 +471,7 @@ h2{font-size:clamp(0.95rem,4vw,1.3rem);margin-bottom:12px;}
 
   <div class="card">
     <h2>Accumulation des Whales</h2>
-    <div id="accumulation">Chargement...</div>
+    <div id="accumulation" style="text-align:center;">Chargement...</div>
     <div id="pumpSignal">Analyse en cours...</div>
     <div class="aide">
       <div class="aide-titre">📖 Comment interpréter ces données ?</div>
@@ -140,8 +484,10 @@ h2{font-size:clamp(0.95rem,4vw,1.3rem);margin-bottom:12px;}
 
   <div class="card">
     <h2>🎯 Pump Radar</h2>
-    <div id="pumpRadarScore" style="font-size:clamp(1.5rem,6vw,2.5rem);font-weight:bold;padding:8px 0;">--/100</div>
-    <div id="pumpRadarExplain" style="font-size:clamp(12px,3.5vw,15px);color:#94a3b8;">Calcul en cours...</div>
+    <div style="text-align:center;padding:12px 0;">
+      <div id="pumpRadarScore" style="font-size:clamp(2rem,8vw,3rem);font-weight:bold;text-align:center;margin:8px 0;">--/100</div>
+      <div id="pumpRadarExplain" style="font-size:clamp(12px,3.5vw,15px);color:#94a3b8;text-align:center;">Calcul en cours...</div>
+    </div>
     <div class="aide">
       <div class="aide-titre">📖 Comment interpréter ce score ?</div>
       <div class="aide-ligne">⚪ <strong>0-30 :</strong> Marché calme, peu d'activité.</div>
@@ -153,8 +499,10 @@ h2{font-size:clamp(0.95rem,4vw,1.3rem);margin-bottom:12px;}
   </div>
   <div class="card">
     <h2>📡 Détecteur de Pump Précoce</h2>
-    <div id="pumpDetectorScore" style="font-size:clamp(1.5rem,6vw,2.5rem);font-weight:bold;padding:8px 0;">--/100</div>
-    <div id="pumpDetectorExplain" style="font-size:clamp(12px,3.5vw,15px);color:#94a3b8;">Calcul en cours...</div>
+    <div style="text-align:center;padding:12px 0;">
+      <div id="pumpDetectorScore" style="font-size:clamp(2rem,8vw,3rem);font-weight:bold;text-align:center;margin:8px 0;">--/100</div>
+      <div id="pumpDetectorExplain" style="font-size:clamp(12px,3.5vw,15px);color:#94a3b8;text-align:center;">Calcul en cours...</div>
+    </div>
     <div class="aide">
       <div class="aide-titre">📖 Comment interpréter ce score ?</div>
       <div class="aide-ligne">Ce score combine : activité whales + nouveaux tokens + activité réseau.</div>
@@ -168,7 +516,7 @@ h2{font-size:clamp(0.95rem,4vw,1.3rem);margin-bottom:12px;}
 
   <div class="card">
     <h2>🚀 Pump Candidates</h2>
-    <div id="pumpCandidates" style="max-height:260px;overflow-y:auto;">Scanning blockchain...</div>
+    <div id="pumpCandidates" style="max-height:260px;overflow-y:auto;text-align:center;">Scanning blockchain...</div>
     <div class="aide">
       <div class="aide-titre">📖 Comment interpréter ces données ?</div>
       <div class="aide-ligne">Un token est candidat au pump s'il cumule plusieurs signaux positifs (score ≥ 60/100).</div>
@@ -182,7 +530,7 @@ h2{font-size:clamp(0.95rem,4vw,1.3rem);margin-bottom:12px;}
 
   <div class="card">
     <h2>📋 Whale Watchlist</h2>
-    <div id="whaleWatchlist" style="max-height:260px;overflow-y:auto;">Scanning blockchain...</div>
+    <div id="whaleWatchlist" style="max-height:260px;overflow-y:auto;text-align:center;">Scanning blockchain...</div>
     <div class="aide">
       <div class="aide-titre">📖 Comment interpréter ces données ?</div>
       <div class="aide-ligne">Suivi des wallets whales les plus actifs avec leur volume total et leur dernière activité.</div>
@@ -193,7 +541,7 @@ h2{font-size:clamp(0.95rem,4vw,1.3rem);margin-bottom:12px;}
 
   <div class="card">
     <h2>🧠 Smart Whale Detector</h2>
-    <div id="smartWhaleDetector" style="max-height:260px;overflow-y:auto;">Scanning blockchain...</div>
+    <div id="smartWhaleDetector" style="max-height:260px;overflow-y:auto;text-align:center;">Scanning blockchain...</div>
     <div class="aide">
       <div class="aide-titre">📖 Comment interpréter ces données ?</div>
       <div class="aide-ligne">Détecte les wallets qui accumulent de manière répétée = comportement de "smart money".</div>
@@ -204,7 +552,7 @@ h2{font-size:clamp(0.95rem,4vw,1.3rem);margin-bottom:12px;}
 
   <div class="card">
     <h2>🧠 Top Wallets Whales</h2>
-    <div id="smartWhales" style="max-height:260px;overflow-y:auto;">Scanning blockchain...</div>
+    <div id="smartWhales" style="max-height:260px;overflow-y:auto;text-align:center;">Scanning blockchain...</div>
     <div class="aide">
       <div class="aide-titre">📖 Comment interpréter ces données ?</div>
       <div class="aide-ligne">Ce classement montre les wallets qui ont déplacé le plus de PLS depuis le démarrage.</div>
@@ -216,7 +564,7 @@ h2{font-size:clamp(0.95rem,4vw,1.3rem);margin-bottom:12px;}
 
   <div class="card">
     <h2>🪙 Nouveaux Tokens Détectés</h2>
-    <div id="memecoinScanner" style="max-height:260px;overflow-y:auto;">Scanning blockchain...</div>
+    <div id="memecoinScanner" style="max-height:260px;overflow-y:auto;text-align:center;">Scanning blockchain...</div>
     <div class="aide">
       <div class="aide-titre">📖 Comment interpréter ces données ?</div>
       <div class="aide-ligne">Un nouveau token = un contrat déployé sur PulseChain. Cela peut être un memecoin ou un projet.</div>
@@ -228,7 +576,7 @@ h2{font-size:clamp(0.95rem,4vw,1.3rem);margin-bottom:12px;}
 
   <div class="card">
     <h2>🧠 Insider Wallets</h2>
-    <div id="insiderWallets" style="max-height:260px;overflow-y:auto;">Scanning blockchain...</div>
+    <div id="insiderWallets" style="max-height:260px;overflow-y:auto;text-align:center;">Scanning blockchain...</div>
     <div class="aide">
       <div class="aide-titre">📖 Comment interpréter ces données ?</div>
       <div class="aide-ligne">Un insider wallet est un wallet qui crée un token, une pool ET achète avant tout le monde.</div>
@@ -239,7 +587,7 @@ h2{font-size:clamp(0.95rem,4vw,1.3rem);margin-bottom:12px;}
 
   <div class="card">
     <h2>🚀 Pump Probability Score</h2>
-    <div id="pumpScores" style="max-height:260px;overflow-y:auto;">Scanning blockchain...</div>
+    <div id="pumpScores" style="max-height:260px;overflow-y:auto;text-align:center;">Scanning blockchain...</div>
     <div class="aide">
       <div class="aide-titre">📖 Comment interpréter ce score ?</div>
       <div class="aide-ligne">Score combiné de tous les signaux : createPair, LP lock, insider, whales, spike.</div>
@@ -251,7 +599,7 @@ h2{font-size:clamp(0.95rem,4vw,1.3rem);margin-bottom:12px;}
 
   <div class="card">
     <h2>🐋 Pre-Spike Whales</h2>
-    <div id="preSpikeWhales" style="max-height:260px;overflow-y:auto;">Scanning blockchain...</div>
+    <div id="preSpikeWhales" style="max-height:260px;overflow-y:auto;text-align:center;">Scanning blockchain...</div>
     <div class="aide">
       <div class="aide-titre">📖 Comment interpréter ces données ?</div>
       <div class="aide-ligne">Détecte les whales qui achètent AVANT un liquidity spike = insiders / snipers.</div>
@@ -262,7 +610,7 @@ h2{font-size:clamp(0.95rem,4vw,1.3rem);margin-bottom:12px;}
 
   <div class="card">
     <h2>💧 Liquidity Spike</h2>
-    <div id="liquiditySpike" style="max-height:260px;overflow-y:auto;">Scanning blockchain...</div>
+    <div id="liquiditySpike" style="max-height:260px;overflow-y:auto;text-align:center;">Scanning blockchain...</div>
     <div class="aide">
       <div class="aide-titre">📖 Comment interpréter ces données ?</div>
       <div class="aide-ligne">Détecte quand la liquidité d'un token double en moins de 5 minutes.</div>
@@ -273,7 +621,7 @@ h2{font-size:clamp(0.95rem,4vw,1.3rem);margin-bottom:12px;}
 
   <div class="card">
     <h2>🚀 Early Whale Entry</h2>
-    <div id="earlyWhales" style="max-height:260px;overflow-y:auto;">Scanning blockchain...</div>
+    <div id="earlyWhales" style="max-height:260px;overflow-y:auto;text-align:center;">Scanning blockchain...</div>
     <div class="aide">
       <div class="aide-titre">📖 Comment interpréter ces données ?</div>
       <div class="aide-ligne">Détecte quand plusieurs whales achètent dans les 30 secondes après l'ajout de liquidité.</div>
@@ -284,7 +632,7 @@ h2{font-size:clamp(0.95rem,4vw,1.3rem);margin-bottom:12px;}
 
   <div class="card">
     <h2>🧠 Smart Money Wallets</h2>
-    <div id="smartMoney" style="max-height:260px;overflow-y:auto;">Scanning blockchain...</div>
+    <div id="smartMoney" style="max-height:260px;overflow-y:auto;text-align:center;">Scanning blockchain...</div>
     <div class="aide">
       <div class="aide-titre">📖 Comment interpréter ces données ?</div>
       <div class="aide-ligne">Wallets qui ont acheté avant des hausses de prix = comportement "smart money".</div>
@@ -298,20 +646,17 @@ h2{font-size:clamp(0.95rem,4vw,1.3rem);margin-bottom:12px;}
 <script>
 
 const RPC = "https://rpc.pulsechain.com";
-const WHALE_THRESHOLD = 500000000;
+const WHALE_THRESHOLD = 200000000; // ~$1500 USD au prix actuel PLS
 const BLOCK_LOOKBACK = 5;
-const TELEGRAM_BOT = window.location.hostname === "localhost"
-  ? "https://api.telegram.org/bot8325675978:AAHua1MO4XywydUxT9r5E1Cj0DcXaQtnIuQ/sendMessage"
-  : "/.netlify/functions/notify";
+// Plus de token Telegram dans le frontend — les alertes passent par l'indexeur local
+const API_BASE = "/.netlify/functions/api";
 
-// Persister totalFlow et totalVolume dans sessionStorage pour eviter reset
-let totalFlow = parseFloat(sessionStorage.getItem("totalFlow") || "0");
-let totalVolume = parseFloat(sessionStorage.getItem("totalVolume") || "0");
+// Flux temps reel - buy et sell separes
+let totalBuyVol = 0;  // volume achats whales
+let totalSellVol = 0; // volume ventes whales
+let totalFlow = 0;    // alias pour compatibilite
+let totalVolume = 0;  // alias pour compatibilite
 
-function saveTotals(){
-sessionStorage.setItem("totalFlow", totalFlow.toString());
-sessionStorage.setItem("totalVolume", totalVolume.toString());
-}
 let plsPrice = 0;
 let derniereAnalyse = 0;
 let whaleScore = 0;
@@ -466,6 +811,42 @@ console.error("PLS monitor error:",e);
 }
 }
 
+
+// ─── FORMATAGE PLS ───────────────────────────────────────────
+function formatPLS(amount){
+  if(amount >= 1e9) return (amount/1e9).toFixed(2) + "B PLS";
+  if(amount >= 1e6) return (amount/1e6).toFixed(2) + "M PLS";
+  if(amount >= 1e3) return (amount/1e3).toFixed(2) + "K PLS";
+  return (amount||0).toFixed(2) + " PLS";
+}
+
+// 7. Calcul sentiment whales
+function computeWhaleSentiment(buys, sells){
+  const total = buys + sells;
+  if(total === 0) return 50;
+  return Math.round((buys / total) * 100);
+}
+
+// 5+6. Calcul netflow et flow whales
+function computeWhaleFlow(whales){
+  let buys = 0, sells = 0;
+  for(const w of whales){
+    if(w.type === "buy" || w.type === "transfer") buys += (w.amount_pls||0);
+    else if(w.type === "sell") sells += (w.amount_pls||0);
+  }
+  return { buys, sells, net: buys - sells };
+}
+
+// 10. Pump score correct
+function computePumpScore(metrics){
+  let score = 0;
+  if(metrics.whaleBuy > metrics.whaleSell) score += 30;
+  if(metrics.newTokens > 10) score += 20;
+  if(metrics.swapVolume > 100000000) score += 30;
+  if(metrics.liquidityIncrease) score += 20;
+  return Math.min(score, 100);
+}
+
 async function rpc(method, params){
 const res = await fetch(RPC,{
 method:"POST",
@@ -593,16 +974,18 @@ el.prepend(div);
 }
 
 function calculatePumpScore(){
-const whaleNet = totalFlow - totalVolume;
-const sentimentBonus = whaleHeatmapData.length > 0 ?
-Math.round((whaleHeatmapData.filter(w=>w.type==="buy").length / whaleHeatmapData.length) * 20) : 0;
+// Basé sur les vrais swaps PulseX uniquement
+const swapNet = totalBuyVol - totalSellVol;
+const swapTotal = totalBuyVol + totalSellVol;
+const sentimentBonus = swapTotal > 0 ?
+Math.round((totalBuyVol / swapTotal) * 20) : 0;
 
-if(whaleNet > 1000000000) whaleScore = 40;
-else if(whaleNet > 500000000) whaleScore = 25;
-else if(whaleNet < -1000000000) whaleScore = -30;
+if(swapNet > 1000000000) whaleScore = 40;
+else if(swapNet > 500000000) whaleScore = 25;
+else if(swapNet < -1000000000) whaleScore = -30;
 else whaleScore = 10;
 
-activityScore = Math.min(sentimentBonus + 10, 30); // base 10 + bonus sentiment
+activityScore = Math.min(sentimentBonus + 10, 30);
 
 pumpScore = calculateAdvancedPumpScore();
 if(pumpScore < 0) pumpScore = 0;
@@ -644,35 +1027,48 @@ document.getElementById("pumpRadarExplain").innerHTML=`<strong>${message}</stron
 }
 
 function displayWhale(tx,value,type){
-addToHeatmap(value, type, tx.from);
+// N'ajouter au heatmap que les vrais sells (les transferts neutres ne biaisent pas le sentiment)
+if(type === "sell") addToHeatmap(value, type, tx.from);
 const whales=document.getElementById("whales");
-if(whales.innerHTML==="Chargement...") whales.innerHTML="";
+if(whales.innerHTML==="Chargement...") {
+  whales.innerHTML="";
+  whales.style.textAlign="left";
+}
 const div=document.createElement("div");
 div.className="whale-entry";
-div.innerHTML=`<span style="color:#60a5fa">🐋 TRANSFERT WHALE ${Math.round(value/1000000)}M PLS</span><br>
+const typeLabel = type === "sell" ? "🔴 SELL" : "🔵 TRANSFERT";
+const typeColor = type === "sell" ? "#ef4444" : "#60a5fa";
+div.innerHTML=`<span style="color:${typeColor}">${typeLabel} WHALE ${formatPLS(value)}</span><br>
 Portefeuille : <a href="https://scan.pulsechain.com/address/${tx.from}" target="_blank" rel="noopener noreferrer" style="color:#60a5fa;text-decoration:none">${tx.from.slice(0,12)}...</a><br>
 Bloc : ${parseInt(tx.blockNumber,16)}`;
 whales.prepend(div);
 }
 
 function updateStats(){
-const net=totalFlow-totalVolume;
+// Netflow basé uniquement sur les vrais swaps PulseX (source fiable)
+const swapNet = totalBuyVol - totalSellVol;
+const hasSwapData = (totalBuyVol + totalSellVol) > 0;
+
 document.getElementById("accumulation").innerHTML=`
-Flux Whales : ${Math.round(totalFlow/1000000)}M PLS<br>
-Volume Swaps : ${Math.round(totalVolume/1000000)}M PLS<br>
-Flux Net : ${Math.round(net/1000000)}M PLS
+Achats swaps : <span style="color:#22c55e">${Math.round(totalBuyVol/1000000)}M PLS</span><br>
+Ventes swaps : <span style="color:#ef4444">${Math.round(totalSellVol/1000000)}M PLS</span><br>
+Flux Net : <span style="color:${swapNet>=0?'#22c55e':'#ef4444'}">${swapNet>=0?'+':''}${Math.round(swapNet/1000000)}M PLS</span><br>
+<span style="color:#64748b;font-size:11px">Transferts whale détectés : ${Math.round(totalFlow/1000000)}M PLS</span>
 `;
 
 let signal,explication;
-if(net>1000000000){
+if(!hasSwapData){
+signal="⏳ En attente de données swaps";
+explication="Les scores se calculent dès que des swaps whales sont détectés sur PulseX.";
+}else if(swapNet>1000000000){
 signal="🟢 Accumulation des whales";
-explication="Les whales achètent plus qu'elles ne vendent. Cela peut annoncer une hausse future.";
-}else if(net<-1000000000){
+explication="Les whales achètent plus qu'elles ne vendent sur PulseX. Signal haussier.";
+}else if(swapNet<-1000000000){
 signal="🔴 Distribution des whales";
-explication="Les whales vendent beaucoup. Cela peut annoncer une pression vendeuse.";
+explication="Les whales vendent massivement sur PulseX. Pression vendeuse.";
 }else{
 signal="🟡 Marché Neutre";
-explication="Les whales achètent et vendent presque autant. Le marché est stable.";
+explication="Volume buy/sell équilibré sur PulseX.";
 }
 document.getElementById("pumpSignal").innerHTML=`<strong>${signal}</strong><br><small style='color:#94a3b8'>${explication}</small>`;
 }
@@ -718,9 +1114,7 @@ if(!tx.input || tx.input === "0x") return;
 if(tx.to?.toLowerCase() !== PULSEX_ROUTER.toLowerCase()) return;
 const signature = tx.input.slice(0,10);
 if(!SWAP_METHODS.includes(signature)) return;
-// Filtre approximatif : un vrai swap a un input long (encodage ABI)
-// Les vrais scanners utilisent les event logs pour plus de precision
-if(tx.input.length < 200) return;
+// Filtre sur signature methode uniquement (plus fiable)
 if(largeSwapsEnvoyes.has(tx.hash)) return;
 largeSwapsEnvoyes.add(tx.hash);
 // Tracker pour pre-spike detection - on associe au dernier token detecte
@@ -783,12 +1177,16 @@ sendTelegram(`💰 Nouveau Token : ${contract}`, "low");
 }
 
 function calculateAdvancedPumpScore(){
-let score = 0;
-if(totalFlow > totalVolume) score += 30;
-if(whaleBuysHistory.length > 3) score += 30;
-if(pumpCandidates.length > 2) score += 20;
-if(detectedTokens.size > 3) score += 20;
-if(score > 100) score = 100;
+const metrics = {
+  whaleBuy: totalBuyVol,   // vrais achats swaps PulseX
+  whaleSell: totalSellVol, // vraies ventes swaps PulseX
+  newTokens: detectedTokens.size,
+  swapVolume: totalBuyVol + totalSellVol,
+  liquidityIncrease: Object.keys(liquiditySpikeDetected).length > 0
+};
+let score = computePumpScore(metrics);
+// Bonus seulement si on a des données réelles
+if(metrics.swapVolume > 0 && whaleBuysHistory.length > 3) score = Math.min(score + 10, 100);
 
 if(score > 70){
 Object.keys(smartMoneyWallets).forEach(wallet=>{
@@ -837,6 +1235,7 @@ const el = document.getElementById("pumpScores");
 const sorted = Object.entries(pumpScores).sort((a,b)=>b[1]-a[1]).slice(0,10);
 if(sorted.length===0) return;
 el.innerHTML="";
+el.style.textAlign="left";
 sorted.forEach(t=>{
 const contract=t[0];
 const score=t[1];
@@ -1106,6 +1505,7 @@ const sorted = Object.entries(smartMoneyWallets)
 .slice(0,5);
 if(sorted.length === 0) return;
 el.innerHTML="";
+el.style.textAlign="left";
 sorted.forEach(w=>{
 const wallet=w[0];
 const data=w[1];
@@ -1216,8 +1616,7 @@ Tx : <a href="https://scan.pulsechain.com/tx/${swap.tx}" target="_blank" rel="no
 whalesEl.prepend(div);
 
 // Mettre a jour totalFlow
-if(type === "buy"){ totalFlow += valueEth; }else{ totalVolume += valueEth; }
-saveTotals();
+if(type === "buy"){ totalBuyVol += valueEth; totalFlow += valueEth; }else{ totalSellVol += valueEth; totalVolume += valueEth; }
 
 // Alerte Telegram si gros swap
 if(valueEth > 1000000000 && !alertesEnvoyees.has(swap.tx)){
@@ -1234,6 +1633,7 @@ Flux Net : ${Math.round(net/1000000)}M PLS
 }
 
 updateStats();
+updateWhaleSentiment();
 }
 }
 
@@ -1243,13 +1643,19 @@ const whaleHeatmapData = [];
 const walletAccumTracker = {};
 
 function updateWhaleSentiment(){
-if(whaleHeatmapData.length === 0) return;
-const buyVol = whaleHeatmapData.filter(w=>w.type==="buy").reduce((s,w)=>s+w.value,0);
-const sellVol = whaleHeatmapData.filter(w=>w.type==="sell").reduce((s,w)=>s+w.value,0);
-const total = buyVol + sellVol;
-if(total === 0) return;
+// Source fiable : uniquement les vrais swaps PulseX (totalBuyVol / totalSellVol)
+const buyVol  = totalBuyVol;
+const sellVol = totalSellVol;
+const total   = buyVol + sellVol;
 
-const score = Math.round((buyVol / total) * 100);
+if(total === 0){
+  document.getElementById("sentimentScore").innerHTML = `<span style="color:#64748b">--/100</span>`;
+  document.getElementById("sentimentLabel").innerHTML = `<span style="color:#64748b">En attente de swaps whales...</span>`;
+  document.getElementById("sentimentDetail").innerHTML = `Données basées sur les swaps PulseX > ${(WHALE_THRESHOLD/1e6).toFixed(0)}M PLS`;
+  return;
+}
+
+const score = computeWhaleSentiment(buyVol, sellVol);
 let label, color;
 if(score > 65){ label="🟢 Accumulation"; color="#22c55e"; }
 else if(score > 50){ label="🟡 Légèrement haussier"; color="#eab308"; }
@@ -1258,7 +1664,7 @@ else{ label="🔴 Distribution"; color="#ef4444"; }
 
 document.getElementById("sentimentScore").innerHTML=`<span style="color:${color}">${score}/100</span>`;
 document.getElementById("sentimentLabel").innerHTML=`<strong style="color:${color}">${label}</strong>`;
-document.getElementById("sentimentDetail").innerHTML=`BUY : ${Math.round(buyVol/1000000)}M | SELL : ${Math.round(sellVol/1000000)}M`;
+document.getElementById("sentimentDetail").innerHTML=`BUY : ${Math.round(buyVol/1000000)}M PLS | SELL : ${Math.round(sellVol/1000000)}M PLS`;
 }
 
 
@@ -1300,105 +1706,123 @@ drawNetflowChart();
 
 function drawNetflowChart(){
 const canvas = document.getElementById("netflowChart");
-if(!canvas || netflowHistory.length < 2) return;
-const ctx = canvas.getContext("2d");
-const W = canvas.offsetWidth || 400;
-const H = 180;
-const TOTAL_H = 200;
-canvas.width = W;
-canvas.height = TOTAL_H;
-ctx.clearRect(0,0,W,H);
+if(!canvas) return;
+if(netflowHistory.length < 2){
+  const ctx = canvas.getContext("2d");
+  const W = canvas.offsetWidth || 400;
+  canvas.width = W; canvas.height = 197;
+  ctx.clearRect(0,0,W,197);
+  ctx.fillStyle = "#64748b"; ctx.font = "12px Arial"; ctx.textAlign = "center";
+  ctx.fillText("En attente de swaps whales sur PulseX...", W/2, 100);
+  ctx.font = "10px Arial"; ctx.fillStyle = "#334155";
+  ctx.fillText("Le graphique se construit en temps réel", W/2, 120);
+  return;
+}
+const ctx   = canvas.getContext("2d");
+const W     = canvas.offsetWidth || 400;
+const H     = 175;
+const HAXIS = 22;
+canvas.width  = W;
+canvas.height = H + HAXIS;
+ctx.clearRect(0, 0, W, H + HAXIS);
 
 // Filtrer selon timeframe
-const cutoff = currentTimeframe > 0 ? Date.now() - currentTimeframe*60*1000 : 0;
-const data = cutoff > 0 ? netflowHistory.filter(d=>d.time >= cutoff) : netflowHistory;
-if(data.length < 2){ ctx.fillStyle="#94a3b8"; ctx.font="12px Arial"; ctx.fillText("Pas assez de données pour ce timeframe",10,H/2); return; }
-const maxVal = Math.max(...data.map(d=>Math.max(d.buy,d.sell,Math.abs(d.net))),1);
-const minNet = Math.min(...data.map(d=>d.net));
-const maxNet = Math.max(...data.map(d=>d.net));
-const range = Math.max(maxNet - minNet, 1);
-
-function xPos(i){ return (i/(data.length-1))*W; }
-function yPos(val){ return H - ((val - minNet)/range)*(H*0.8) - H*0.1; }
-const H_AXIS = 20;
-
-// Grille
-ctx.strokeStyle="#1e293b";
-ctx.lineWidth=1;
-for(let i=0;i<4;i++){
-const y = H*0.1 + (H*0.8/3)*i;
-ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke();
+// Utiliser le dernier point comme reference (pas Date.now())
+const lastPoint = netflowHistory[netflowHistory.length - 1]?.time || Date.now();
+const cutoff = currentTimeframe > 0 ? lastPoint - currentTimeframe * 60 * 1000 : 0;
+const data   = cutoff > 0 ? netflowHistory.filter(d => d.time >= cutoff) : netflowHistory;
+if(data.length < 2){
+  ctx.fillStyle = "#94a3b8";
+  ctx.font = "12px Arial";
+  ctx.fillText("Pas assez de données pour ce timeframe", 10, H/2);
+  return;
 }
 
-// Zone zero
+const minNet = Math.min(...data.map(d => d.net));
+const maxNet = Math.max(...data.map(d => d.net));
+const range  = Math.max(maxNet - minNet, 1);
+
+function xPos(i){ return (i / (data.length - 1)) * W; }
+function yPos(v){ return H - ((v - minNet) / range) * (H * 0.8) - H * 0.1; }
+
+// Fond axe
+ctx.fillStyle = "#0a0f1e";
+ctx.fillRect(0, H, W, HAXIS);
+
+// Grille horizontale
+ctx.strokeStyle = "#1e293b";
+ctx.lineWidth = 1;
+for(let i = 0; i < 4; i++){
+  const y = H * 0.1 + (H * 0.8 / 3) * i;
+  ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+}
+
+// Ligne zéro
 const zeroY = yPos(0);
-ctx.strokeStyle="#334155";
-ctx.setLineDash([4,4]);
-ctx.beginPath(); ctx.moveTo(0,zeroY); ctx.lineTo(W,zeroY); ctx.stroke();
+ctx.strokeStyle = "#334155";
+ctx.setLineDash([4, 4]);
+ctx.beginPath(); ctx.moveTo(0, zeroY); ctx.lineTo(W, zeroY); ctx.stroke();
 ctx.setLineDash([]);
 
 // Ligne BUY
-ctx.strokeStyle="#22c55e";
-ctx.lineWidth=1.5;
+ctx.strokeStyle = "#22c55e"; ctx.lineWidth = 1.5;
 ctx.beginPath();
-data.forEach((d,i)=>{ i===0?ctx.moveTo(xPos(i),yPos(d.buy)):ctx.lineTo(xPos(i),yPos(d.buy)); });
+data.forEach((d,i) => i===0 ? ctx.moveTo(xPos(i),yPos(d.buy)) : ctx.lineTo(xPos(i),yPos(d.buy)));
 ctx.stroke();
 
 // Ligne SELL
-ctx.strokeStyle="#ef4444";
-ctx.lineWidth=1.5;
+ctx.strokeStyle = "#ef4444"; ctx.lineWidth = 1.5;
 ctx.beginPath();
-data.forEach((d,i)=>{ i===0?ctx.moveTo(xPos(i),yPos(d.sell)):ctx.lineTo(xPos(i),yPos(d.sell)); });
+data.forEach((d,i) => i===0 ? ctx.moveTo(xPos(i),yPos(d.sell)) : ctx.lineTo(xPos(i),yPos(d.sell)));
 ctx.stroke();
 
-// Ligne NET (plus epaisse)
-ctx.strokeStyle="#60a5fa";
-ctx.lineWidth=2.5;
+// Ligne NET
+ctx.strokeStyle = "#60a5fa"; ctx.lineWidth = 2.5;
 ctx.beginPath();
-data.forEach((d,i)=>{ i===0?ctx.moveTo(xPos(i),yPos(d.net)):ctx.lineTo(xPos(i),yPos(d.net)); });
+data.forEach((d,i) => i===0 ? ctx.moveTo(xPos(i),yPos(d.net)) : ctx.lineTo(xPos(i),yPos(d.net)));
 ctx.stroke();
 
-// Labels haut
-ctx.fillStyle="#94a3b8";
-ctx.font="10px Arial";
-const lastNet = data[data.length-1].net;
-const tfLabel = currentTimeframe===1440?"Jour":currentTimeframe===43200?"Mois":currentTimeframe===525600?"Année":"Tout";
-ctx.fillText(`Net ${tfLabel}: ${lastNet>0?"+":""}${Math.round(lastNet/1000000)}M PLS`, W-130, 14);
+// Label haut
+ctx.fillStyle = "#94a3b8"; ctx.font = "10px Arial"; ctx.textAlign = "left";
+const lastNet  = data[data.length-1].net;
+const tfLabel  = currentTimeframe===1440?"Jour":currentTimeframe===43200?"Mois":currentTimeframe===525600?"Année":"Tout";
+ctx.fillText(`Net ${tfLabel}: ${lastNet>=0?"+":""}${formatPLS ? formatPLS(Math.abs(lastNet)) : Math.round(lastNet/1e6)+"M PLS"}`, 4, 13);
 
-// Axe temporel en bas
-
-// Note: canvas.height deja fixe a H=200, on reserve de la place pour l'axe
-ctx.fillStyle="#0f172a";
-ctx.fillRect(0, H, W, H_AXIS);
-
+// ─── Axe temporel adaptatif ───────────────────────────────
 const nbLabels = Math.min(6, data.length);
-const step = Math.floor(data.length / nbLabels);
-ctx.fillStyle="#64748b";
-ctx.font="9px Arial";
-ctx.textAlign="center";
+const step     = Math.max(1, Math.floor(data.length / nbLabels));
+ctx.fillStyle  = "#64748b"; ctx.font = "9px Arial"; ctx.textAlign = "center";
 
 for(let i = 0; i < data.length; i += step){
-  const d2 = data[i];
-  const x = xPos(i);
-  const date = new Date(d2.time);
-  const span = data[data.length-1].time - data[0].time;
+  const d    = data[i];
+  const x    = xPos(i);
+  const date = new Date(d.time);
   let label;
-  if(span < 48*3600*1000)         label = date.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"});
-  else if(span < 32*24*3600*1000) label = date.toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit"});
-  else if(span < 400*24*3600*1000)label = date.toLocaleDateString("fr-FR",{month:"short",year:"2-digit"});
-  else                            label = date.toLocaleDateString("fr-FR",{month:"short",year:"numeric"});
 
-  // Ligne verticale guide
-  ctx.strokeStyle="#1e293b";
-  ctx.lineWidth=0.5;
-  ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke();
+  if(currentTimeframe === 1440){
+    // Jour -> heures:minutes (ex: 14:00, 15:30)
+    label = date.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"});
+  } else if(currentTimeframe === 43200){
+    // Mois -> jours (ex: 01/04, 05/04)
+    label = date.toLocaleDateString("fr-FR", {day:"2-digit", month:"2-digit"});
+  } else if(currentTimeframe === 525600){
+    // Année -> mois (ex: Jan, Fév, Mar)
+    label = date.toLocaleDateString("fr-FR", {month:"short"});
+  } else {
+    // Tout -> mois + année courte (ex: Août 25)
+    label = date.toLocaleDateString("fr-FR", {month:"short", year:"2-digit"});
+  }
 
-  ctx.fillStyle="#64748b";
-  ctx.fillText(label, Math.min(Math.max(x, 20), W-20), H + 14);
+  // Ligne guide verticale
+  ctx.strokeStyle = "#1e293b"; ctx.lineWidth = 0.5;
+  ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+
+  // Label
+  ctx.fillStyle = "#64748b";
+  ctx.fillText(label, Math.min(Math.max(x, 18), W-18), H + 15);
 }
-ctx.textAlign="left";
+ctx.textAlign = "left";
 }
-
 // Redessiner au resize
 window.addEventListener("resize", drawNetflowChart);
 // Dessiner au chargement si donnees existantes
@@ -1427,10 +1851,11 @@ displayAccumulation(wallet, walletAccumTracker[wallet].length);
 function displayWhaleHeatmap(){
 const el = document.getElementById("whaleHeatmap");
 el.innerHTML="";
+el.style.textAlign="left";
 whaleHeatmapData.forEach(w=>{
 const div=document.createElement("div");
 div.style.cssText=`padding:4px 8px;margin:2px 0;border-radius:4px;background:${w.type==="buy"?"rgba(34,197,94,0.15)":"rgba(239,68,68,0.15)"};font-size:12px;display:flex;justify-content:space-between`;
-div.innerHTML=`<span style="color:${w.type==="buy"?"#22c55e":"#ef4444"}">${w.type==="buy"?"▲ BUY":"▼ SELL"} ${Math.round(w.value/1000000)}M PLS</span><span style="color:#64748b;font-size:11px">${new Date(w.time).toLocaleTimeString("fr-FR")}</span>`;
+div.innerHTML=`<span style="color:${w.type==="buy"?"#22c55e":"#ef4444"}">${w.type==="buy"?"▲ BUY":"▼ SELL"} ${formatPLS(w.value)}</span><span style="color:#64748b;font-size:11px">${new Date(w.time).toLocaleTimeString("fr-FR")}</span>`;
 el.appendChild(div);
 });
 }
@@ -1490,15 +1915,23 @@ if(whaleWallets[tx.from] && whaleWallets[tx.from].transactions > 30) continue;
 
 found++;
 
-// Sur blockchain pure on ne peut pas distinguer buy/sell avec certitude
-// On traite tout comme transfer et on incremente totalBuy
-const type = "buy";
-totalFlow += value;
-saveTotals();
+// Classification réelle du transfert
+// Si destination = PulseX Router → vente probable
+// Sinon → transfert neutre, on ne biaise pas les stats buy/sell
+let type = "transfer";
+const dest = (tx.to || "").toLowerCase();
+if(dest === PULSEX_ROUTER.toLowerCase()) {
+  type = "sell";
+  totalSellVol += value;
+  totalVolume += value;
+} else {
+  // Transfert simple : on l'ajoute au volume global sans biaiser buy/sell
+  totalFlow += value;
+}
 
-displayWhale(tx,value,type);
+displayWhale(tx, value, type);
 
-// Whale Burst
+// Whale Burst — basé sur le volume total déplacé
 whaleBurst.push({amount:value,time:Date.now()});
 whaleBurst = whaleBurst.filter(t=>Date.now()-t.time<10*60*1000);
 if(whaleBurst.length > 200) whaleBurst.shift();
@@ -1508,15 +1941,15 @@ lastBurstAlert=Date.now();
 sendTelegram(`🔥 Whale Burst : ${Math.round(burstTotal/1000000)}M PLS en 10min`, "medium");
 }
 
-// Whale Accumulation
-if(type==="buy"){
+// Whale Accumulation — uniquement sur les vrais sells détectés
+if(type==="sell"){
 whaleBuysHistory.push({amount:value,time:Date.now()});
 whaleBuysHistory=whaleBuysHistory.filter(t=>Date.now()-t.time<20*60*1000);
 if(whaleBuysHistory.length > 200) whaleBuysHistory.shift();
 const accumTotal=whaleBuysHistory.reduce((s,t)=>s+t.amount,0);
 if(accumTotal>1500000000 && Date.now()-lastAccumulationAlert>30*60*1000){
 lastAccumulationAlert=Date.now();
-sendTelegram(`🚀 Whale Accumulation : ${Math.round(accumTotal/1000000)}M PLS en 20min`, "medium");
+sendTelegram(`🚀 Whale Sell Pressure : ${Math.round(accumTotal/1000000)}M PLS en 20min`, "medium");
 }
 }
 
@@ -1568,7 +2001,7 @@ document.getElementById("whales").innerHTML="<div style='color:#ef4444'>Erreur R
 monitorPLSMarket();
 
 monitorPLSMarket();
-monitorPLSBurn();
+setTimeout(monitorPLSBurn, 3000); // delai pour eviter conflit RPC
 setInterval(monitorPLSMarket, 60000);
 setInterval(monitorPLSBurn, 30000);
 setInterval(getPlsPrice, 5*60*1000);
@@ -1596,7 +2029,10 @@ addPumpCandidate(token);
 
 function addPumpCandidate(token){
 const el = document.getElementById("pumpCandidates");
-if(el.innerHTML==="En attente...") el.innerHTML="";
+if(el.innerHTML==="Scanning blockchain...") {
+  el.innerHTML="";
+  el.style.textAlign="left";
+}
 
 const lpStatus = token.lpLocked ? "🔒 YES" : "⚠️ NO";
 const whalesStatus = token.whaleActivity ? "🟢 active" : "⚪ aucune";
@@ -1645,6 +2081,7 @@ const sorted = Object.entries(whaleWatchlist)
 .sort((a,b)=>b[1].volume-a[1].volume)
 .slice(0,8);
 el.innerHTML="";
+el.style.textAlign="left";
 sorted.forEach(w=>{
 const wallet=w[0];
 const data=w[1];
@@ -1681,6 +2118,7 @@ const sorted = Object.entries(smartWhalesData)
 .sort((a,b)=>b[1].buys-a[1].buys)
 .slice(0,5);
 el.innerHTML="";
+el.style.textAlign="left";
 sorted.forEach(w=>{
 const wallet=w[0];
 const data=w[1];
@@ -1710,6 +2148,7 @@ const sorted = Object.entries(whaleWallets)
 .slice(0,5);
 
 el.innerHTML="";
+el.style.textAlign="left";
 
 sorted.forEach(w=>{
 const wallet=w[0];
@@ -1725,17 +2164,24 @@ el.appendChild(div);
 let earlyPumpScore = 0;
 
 function calculateEarlyPump(){
-let whaleNet = totalFlow - totalVolume;
+// Utiliser le vrai netflow swaps, pas totalFlow qui inclut les transferts neutres
+const swapNet = totalBuyVol - totalSellVol;
+const swapTotal = totalBuyVol + totalSellVol;
 let tokenActivity = detectedTokens.size;
 let score = 0;
 
-if(whaleNet > 1000000000) score += 40;
-else if(whaleNet > 500000000) score += 25;
+// Score swap uniquement si on a des données réelles
+if(swapTotal > 0){
+  if(swapNet > 1000000000) score += 40;
+  else if(swapNet > 500000000) score += 25;
+  else if(swapNet > 0) score += 10;
+}
 
 if(tokenActivity > 3) score += 20;
 if(tokenActivity > 6) score += 30;
 
-score += Math.min(whaleBuysHistory.length * 5, 20);
+// Bonus liquidité spike (signal fiable)
+score += Math.min(Object.keys(liquiditySpikeDetected).length * 5, 20);
 if(score > 100) score = 100;
 
 earlyPumpScore = score;
@@ -1851,15 +2297,27 @@ let currentHistoricalTf = 'all';
 async function loadSiteData(){
   try{
     const res = await fetch('./site_data.json?t=' + Date.now());
-    if(!res.ok) return;
+    if(!res.ok) {
+      document.getElementById('historicalData').innerHTML =
+        '<span style="color:#64748b">Aucune donnée historique — lance l\'indexeur local</span>';
+      return;
+    }
     siteData = await res.json();
+    
+    // Vérifier la structure minimale
+    if(!siteData.timeframes) {
+      console.warn('Structure site_data.json incomplète');
+      siteData.timeframes = { '24h': { netflow: { total_flow_pls: 0, tx_count: 0 }, pump_score: 0 } };
+    }
+    
     loadHistorical(currentHistoricalTf);
     injectHistoricalIntoNetflow();
     injectHistoricalWallets();
-    console.log('✅ site_data.json chargé — bloc', siteData.last_block);
+    console.log('✅ site_data.json chargé — dernière MAJ:', new Date(siteData.last_update * 1000).toLocaleString());
   }catch(e){
+    console.error('Erreur chargement site_data.json:', e);
     document.getElementById('historicalData').innerHTML =
-      '<span style="color:#64748b">Aucune donnée historique — lance l\'indexeur local</span>';
+      '<span style="color:#ef4444">Erreur chargement données historiques</span>';
   }
 }
 
@@ -1881,97 +2339,45 @@ function loadHistorical(tf){
     return;
   }
 
-  const d  = siteData.timeframes[tf];
-  const nf = d.netflow;
-  const sw = d.swaps;
-  const net = Math.abs(nf.total_pls) > 1e9 ? Math.round(nf.total_pls/1e12) : nf.total_pls; // correction wei->PLS si necessaire
+  const d  = siteData.timeframes[tf] || {};
+  const nf = d.netflow || {};
+  const sw = d.swaps || {};
+  const net = (nf.netflow_pls ?? nf.total_pls ?? ((nf.buy_pls||0)-(nf.sell_pls||0)));
   const netColor = net > 0 ? '#22c55e' : '#ef4444';
   const netSign  = net > 0 ? '+' : '';
   const signal   = net > 1000 ? '🟢 Accumulation' : net < -1000 ? '🔴 Distribution' : '🟡 Neutre';
-  const updated  = new Date(siteData.updated_at * 1000).toLocaleString('fr-FR');
+  const updated  = siteData.last_update ? new Date(siteData.last_update * 1000).toLocaleString('fr-FR') : 'N/A';
+  const lastBlock = siteData.last_block || 'N/A';
 
   document.getElementById('historicalData').innerHTML = `
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
   <div>
     <strong style="color:#60a5fa">Whales ${tf==='24h'?'Jour':tf==='30d'?'Mois':'Tout'}</strong><br>
-    Flux : <span style="color:${netColor};font-weight:bold">${netSign}${net.toLocaleString()}M PLS</span><br>
-    Transactions : ${nf.tx_count.toLocaleString()}<br>
-    Wallets uniques : ${nf.wallets.toLocaleString()}<br>
+    Flux total : <span style="color:${netColor};font-weight:bold">${netSign}${net.toLocaleString()}M PLS</span><br>
+    Achats whales : <span style="color:#22c55e">${(nf.buy_pls||0).toLocaleString()}M PLS</span><br>
+    Ventes whales : <span style="color:#ef4444">${(nf.sell_pls||0).toLocaleString()}M PLS</span><br>
+    Netflow réel : <span style="color:${(nf.netflow_pls||0)>=0?'#22c55e':'#ef4444'}">${(nf.netflow_pls||0)>=0?'+':''}${(nf.netflow_pls||0).toLocaleString()}M PLS</span><br>
+    Transactions : ${(nf.tx_count||0).toLocaleString()}<br>
+    Wallets uniques : ${(nf.unique_wallets||0).toLocaleString()}<br>
     Signal : ${signal}
   </div>
   <div>
     <strong style="color:#a78bfa">Swaps ${tf==='24h'?'Jour':tf==='30d'?'Mois':'Tout'}</strong><br>
-    Achats : <span style="color:#22c55e">${sw.buys.toLocaleString()}</span><br>
-    Ventes : <span style="color:#ef4444">${sw.sells.toLocaleString()}</span><br>
-    Nouveaux tokens : ${d.new_tokens}<br>
+    Achats : <span style="color:#22c55e">${(sw.buys||sw.count||0).toLocaleString()}</span><br>
+    Ventes : <span style="color:#ef4444">${(sw.sells||0).toLocaleString()}</span><br>
+    Nouveaux tokens : ${d.tokens?.new_pairs || d.new_tokens || 0}<br>
     Pump Score : <span style="color:${d.pump_score>70?'#22c55e':d.pump_score>50?'#f97316':d.pump_score>30?'#eab308':'#94a3b8'}">${d.pump_score}/100</span>
   </div>
 </div>
 <div style="margin-top:8px;font-size:11px;color:#64748b">
-  Données : ${siteData.data_range?.from_date||'?'} → ${siteData.data_range?.to_date||'?'}<br>
-  Dernier bloc indexé : ${siteData.last_block.toLocaleString()} — Mis à jour : ${updated}
+  Données : ${siteData.data_range?.from_date||'Indexeur local'} → ${siteData.data_range?.to_date||'En cours'}<br>
+  Dernier bloc indexé : ${typeof lastBlock === 'number' ? lastBlock.toLocaleString() : lastBlock} — Mis à jour : ${updated}
 </div>`;
 }
 
 function injectHistoricalIntoNetflow(){
-  if(!siteData?.timeframes) return;
-  if(netflowHistory.length > 10) return; // deja des donnees temps reel
-
-  // Utiliser le timeframe "all" pour construire une courbe realiste
-  const tf = siteData.timeframes['all'] || siteData.timeframes['30d'] || siteData.timeframes['7d'];
-  if(!tf || tf.netflow.tx_count === 0) return;
-
-  const dataRange = siteData.data_range;
-  if(!dataRange) return;
-
-  const fromTs = dataRange.from * 1000;
-  const toTs   = dataRange.to   * 1000;
-  const span   = toTs - fromTs;
-  if(span <= 0) return;
-
-  // Construire une courbe realiste avec variation aleatoire seedee
-  const points = 120; // 120 points sur la periode
-  let buyAccum  = 0;
-  let sellAccum = 0;
-  // Correction si valeurs aberrantes (wei au lieu de PLS)
-  let rawTotal = tf.netflow.total_pls;
-  if(Math.abs(rawTotal) > 1e9) rawTotal = rawTotal / 1e12;
-  const totalBuy  = rawTotal * 1e6 * (tf.swaps.buys  / Math.max(tf.swaps.buys + tf.swaps.sells, 1));
-  const totalSell = rawTotal * 1e6 * (tf.swaps.sells / Math.max(tf.swaps.buys + tf.swaps.sells, 1));
-
-  netflowHistory.length = 0;
-  netflowBuyAccum  = 0;
-  netflowSellAccum = 0;
-
-  for(let i = 0; i <= points; i++){
-    const progress = i / points;
-    const t = fromTs + span * progress;
-
-    // Variation realiste : progression non lineaire avec bruit
-    const noise = (Math.sin(i * 0.7) * 0.15 + Math.sin(i * 1.3) * 0.1 + Math.sin(i * 2.1) * 0.05);
-    const curve = Math.pow(progress, 0.8) + noise * progress;
-    const clampedCurve = Math.max(0, Math.min(1, curve));
-
-    buyAccum  = totalBuy  * clampedCurve;
-    sellAccum = totalSell * clampedCurve;
-
-    netflowHistory.push({
-      time: t,
-      buy:  buyAccum,
-      sell: sellAccum,
-      net:  buyAccum - sellAccum
-    });
-  }
-
-  netflowBuyAccum  = buyAccum;
-  netflowSellAccum = sellAccum;
-
-  try{
-    localStorage.setItem("netflowHistory", JSON.stringify(netflowHistory));
-    localStorage.setItem("netflowBuyAccum", netflowBuyAccum.toString());
-    localStorage.setItem("netflowSellAccum", netflowSellAccum.toString());
-  }catch(e){}
-
+  // Courbe synthétique supprimée — le graphique affiche uniquement les vrais swaps temps réel
+  // Les données s'accumulent via addNetflowPoint() appelé par scanSwapLogs()
   drawNetflowChart();
 }
 
@@ -1979,127 +2385,65 @@ function injectHistoricalWallets(){
   if(!siteData) return;
 
   // Injecter les top wallets historiques dans la watchlist
-  const tf = siteData.timeframes['24h'];
+  const tf = siteData.timeframes && siteData.timeframes['24h'];
   if(!tf) return;
 
   // Top wallets → Whale Watchlist
   if(tf.top_wallets && tf.top_wallets.length > 0){
     const el = document.getElementById('whaleWatchlist');
-    if(el.innerHTML === 'Scanning blockchain...') el.innerHTML = '';
+    if(el && el.innerHTML === 'Scanning blockchain...') el.innerHTML = '';
     tf.top_wallets.slice(0,5).forEach(w=>{
       if(!w.wallet) return;
       const div = document.createElement('div');
       div.className = 'whale-entry';
       div.innerHTML = `🐋 <span style="color:#94a3b8;font-size:11px">HISTORIQUE</span><br>
 <a href="https://scan.pulsechain.com/address/${w.wallet}" target="_blank" rel="noopener noreferrer" style="color:#60a5fa;text-decoration:none;font-size:12px">${w.wallet}</a><br>
-Volume 24h : <span class="buy">${w.volume_pls.toLocaleString()}M PLS</span> | ${w.txs} txs`;
-      el.appendChild(div);
+Volume : <span class="buy">${(w.volume_pls||0).toLocaleString()}M PLS</span> | ${w.txs||0} txs`;
+      if(el) el.appendChild(div);
     });
   }
 
   // Smart money → Smart Money Wallets
   if(tf.smart_money && tf.smart_money.length > 0){
     const el = document.getElementById('smartMoney');
-    if(el.innerHTML === 'Scanning blockchain...') el.innerHTML = '';
+    if(el && el.innerHTML === 'Scanning blockchain...') el.innerHTML = '';
     tf.smart_money.slice(0,5).forEach(w=>{
       if(!w.wallet) return;
-      // Chercher dans last_whales les infos de ce wallet
       const walletTxs = (siteData.last_whales||[]).filter(wh=>wh.wallet===w.wallet);
-      const lastSeen  = walletTxs.length > 0
+      const lastSeen  = walletTxs.length > 0 && walletTxs[0].timestamp
         ? new Date(walletTxs[0].timestamp*1000).toLocaleDateString("fr-FR")
         : "N/A";
-      const sells = walletTxs.filter(wh=>wh.type==="sell").reduce((s,wh)=>s+wh.amount_pls,0);
-      const buys  = w.volume_pls;
+      const sells = walletTxs.filter(wh=>wh.type==="sell").reduce((s,wh)=>s+(wh.amount_pls||0),0);
+      const buys  = w.volume_pls || 0;
       const solde = buys - sells;
       const soldeColor = solde >= 0 ? "#22c55e" : "#ef4444";
       const div = document.createElement('div');
       div.className = 'whale-entry';
       div.innerHTML = `🧠 <span style="color:#94a3b8;font-size:11px">HISTORIQUE</span><br>
 <a href="https://scan.pulsechain.com/address/${w.wallet}" target="_blank" rel="noopener noreferrer" style="color:#60a5fa;text-decoration:none;font-size:12px">${w.wallet}</a><br>
-<span style="color:#22c55e">▲ Achats : ${buys.toLocaleString()}M PLS</span> (${w.txs} txs)<br>
+<span style="color:#22c55e">▲ Achats : ${buys.toLocaleString()}M PLS</span> (${w.txs||0} txs)<br>
 <span style="color:#ef4444">▼ Ventes : ${sells.toLocaleString()}M PLS</span><br>
 Solde net : <span style="color:${soldeColor};font-weight:bold">${solde>=0?"+":""}${solde.toLocaleString()}M PLS</span><br>
 <span style="color:#64748b;font-size:11px">Dernière activité : ${lastSeen}</span>`;
-      el.appendChild(div);
-    });
-  }
-
-  // Whale Heatmap + Sentiment avec donnees historiques
-  if(siteData.last_whales && siteData.last_whales.length > 0){
-    const heatEl = document.getElementById('whaleHeatmap');
-    if(heatEl.innerHTML === 'Scanning blockchain...') heatEl.innerHTML = '';
-    // Prendre les 10 dernieres whales pour la heatmap
-    siteData.last_whales.slice(0,10).forEach(w=>{
-      if(!w.wallet || w.amount_pls <= 0) return;
-      addToHeatmap(w.amount_pls * 1e6, w.type === 'sell' ? 'sell' : 'buy', w.wallet);
-    });
-  }
-
-  // Nouveaux tokens historiques
-  if(siteData.last_tokens && siteData.last_tokens.length > 0){
-    const tokEl = document.getElementById('memecoinScanner');
-    if(tokEl.innerHTML === 'Scanning blockchain...') tokEl.innerHTML = '';
-    siteData.last_tokens.slice(0,5).forEach(t=>{
-      if(!t.address) return;
-      const date = t.timestamp ? new Date(t.timestamp*1000).toLocaleDateString('fr-FR') : 'N/A';
-      const div = document.createElement('div');
-      div.className = 'whale-entry';
-      div.innerHTML = `🪙 <span style="color:#94a3b8;font-size:11px">HISTORIQUE</span><br>
-<a href="https://scan.pulsechain.com/address/${t.address}" target="_blank" rel="noopener noreferrer" style="color:#60a5fa;text-decoration:none;font-size:12px">${t.address}</a><br>
-<span style="color:#eab308">⚠️ Pool créée le ${date}</span>`;
-      tokEl.appendChild(div);
-    });
-  }
-
-  // Smart Whale Detector enrichi avec historique complet
-  if(siteData.smart_wallets_full && siteData.smart_wallets_full.length > 0){
-    const elSWD = document.getElementById('smartWhaleDetector');
-    if(elSWD.innerHTML === 'Scanning blockchain...') elSWD.innerHTML = '';
-    siteData.smart_wallets_full.slice(0,5).forEach(w=>{
-      if(!w.wallet) return;
-      const netColor = w.net_pls >= 0 ? '#22c55e' : '#ef4444';
-      const lastDate = w.last_seen ? new Date(w.last_seen*1000).toLocaleDateString('fr-FR') : 'N/A';
-      const firstDate = w.first_seen ? new Date(w.first_seen*1000).toLocaleDateString('fr-FR') : 'N/A';
-      const div = document.createElement('div');
-      div.className = 'whale-entry';
-      div.innerHTML = `🧠 <span style="color:#94a3b8;font-size:11px">HISTORIQUE</span><br>
-<a href="https://scan.pulsechain.com/address/${w.wallet}" target="_blank" rel="noopener noreferrer" style="color:#60a5fa;text-decoration:none;font-size:12px">${w.wallet}</a><br>
-<span style="color:#22c55e">▲ Achats : ${w.buy_pls.toLocaleString()}M PLS</span><br>
-<span style="color:#ef4444">▼ Ventes : ${w.sell_pls.toLocaleString()}M PLS</span><br>
-Solde net : <span style="color:${netColor};font-weight:bold">${w.net_pls>=0?'+':''}${w.net_pls.toLocaleString()}M PLS</span> | ${w.txs} txs<br>
-<span style="color:#64748b;font-size:11px">Du ${firstDate} au ${lastDate}</span>`;
-      elSWD.appendChild(div);
-    });
-
-    // Top Wallets Whales enrichi
-    const elTW = document.getElementById('smartWhales');
-    if(elTW.innerHTML === 'Scanning blockchain...') elTW.innerHTML = '';
-    siteData.smart_wallets_full.slice(0,5).forEach(w=>{
-      if(!w.wallet) return;
-      const div = document.createElement('div');
-      div.className = 'whale-entry';
-      div.innerHTML = `🐋 <span style="color:#94a3b8;font-size:11px">HISTORIQUE</span><br>
-<a href="https://scan.pulsechain.com/address/${w.wallet}" target="_blank" rel="noopener noreferrer" style="color:#60a5fa;text-decoration:none;font-size:12px">${w.wallet}</a><br>
-Volume : <span class="buy">${w.buy_pls.toLocaleString()}M PLS</span> | ${w.txs} transactions`;
-      elTW.appendChild(div);
+      if(el) el.appendChild(div);
     });
   }
 
   // Dernières whales → Whale Activity
   if(siteData.last_whales && siteData.last_whales.length > 0){
     const el = document.getElementById('whales');
-    if(el.innerHTML === 'Chargement...') el.innerHTML = '';
+    if(el && el.innerHTML === 'Chargement...') el.innerHTML = '';
     siteData.last_whales.slice(0,10).forEach(w=>{
       if(!w.wallet) return;
       const div = document.createElement('div');
       div.className = 'whale-entry';
       const color = w.type === 'buy' ? '#22c55e' : '#ef4444';
-      const date  = new Date(w.timestamp * 1000).toLocaleString('fr-FR');
-      div.innerHTML = `<span style="color:${color}">🐋 ${w.type.toUpperCase()} ${w.amount_pls.toLocaleString()}M PLS</span>
+      const date  = w.timestamp ? new Date(w.timestamp * 1000).toLocaleString('fr-FR') : 'N/A';
+      div.innerHTML = `<span style="color:${color}">🐋 ${(w.type||'').toUpperCase()} ${(w.amount_pls||0).toLocaleString()}M PLS</span>
 <span style="color:#94a3b8;font-size:11px"> HISTORIQUE</span><br>
 <a href="https://scan.pulsechain.com/address/${w.wallet}" target="_blank" rel="noopener noreferrer" style="color:#60a5fa;text-decoration:none;font-size:12px">${w.wallet.slice(0,14)}...</a><br>
 <span style="color:#64748b;font-size:11px">${date}</span>`;
-      el.appendChild(div);
+      if(el) el.appendChild(div);
     });
   }
 }

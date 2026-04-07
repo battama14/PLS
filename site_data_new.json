@@ -1,0 +1,41 @@
+{
+  "last_update": 1703123456,
+  "last_whales": [
+    {
+      "wallet": "0x1234567890...",
+      "amount_pls": 750000000,
+      "type": "buy"
+    },
+    {
+      "wallet": "0x9876543210...",
+      "amount_pls": 1200000000,
+      "type": "buy"
+    }
+  ],
+  "timeframes": {
+    "24h": {
+      "pump_score": 45,
+      "netflow": {
+        "total_flow_pls": 2500.5,
+        "tx_count": 12,
+        "unique_wallets": 8
+      },
+      "liquidity_spikes": [],
+      "insider_wallets": [],
+      "pump_candidates": []
+    },
+    "7d": {
+      "pump_score": 65,
+      "netflow": {
+        "total_flow_pls": 15000.2,
+        "tx_count": 45,
+        "unique_wallets": 25
+      }
+    }
+  },
+  "pump_radar": {
+    "score": 45,
+    "candidates": [],
+    "liquidity_spikes": []
+  }
+}
