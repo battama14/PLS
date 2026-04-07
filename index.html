@@ -602,7 +602,7 @@ document.getElementById("pumpDetectorScore").innerHTML=`<span style="color:${cou
 document.getElementById("pumpDetectorExplain").innerHTML=`<strong>${message}</strong><br><small style="color:#94a3b8">${explication}</small>`;
 }
 
-let detectedTokens = [];
+const detectedTokens = new Map(); // adresse -> derniere liquidite connue
 
 async function scanMemecoins(){
 try{
@@ -610,26 +610,45 @@ const block = await getLatestBlock();
 const blockData = await getBlock(block);
 if(!blockData || !blockData.transactions) return;
 
-blockData.transactions.forEach(tx=>{
+for(const tx of blockData.transactions){
 if(!tx.to){
 const contractAddress = tx.hash.slice(0,42);
-if(!detectedTokens.includes(contractAddress)){
-detectedTokens.push(contractAddress);
+try{
+const res = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${contractAddress}`);
+const data = await res.json();
+const pair = data.pairs && data.pairs[0];
+const liquidity = pair ? parseFloat(pair.liquidity?.usd || 0) : 0;
+const derniereLiquidite = detectedTokens.get(contractAddress) || 0;
+const hausseSignificative = liquidity > 3000 && liquidity > derniereLiquidite * 1.5;
+
+if(!detectedTokens.has(contractAddress) || hausseSignificative){
+detectedTokens.set(contractAddress, liquidity);
 displayMemecoin(contractAddress);
-sendTelegram(`🪙 Nouveau Token Détecté !
-━━━━━━━━━━━━━━━
-Contrat : ${contractAddress}
-⚠️ Possible lancement de memecoin
-Vérifiez la liquidité avant d'investir
-https://scan.pulsechain.com/address/${contractAddress}
-━━━━━━━━━━━━━━━`);
-}
-}
+if(pair){
+evaluateToken({
+name: pair.baseToken?.symbol || contractAddress.slice(0,8),
+contract: contractAddress,
+liquidity: liquidity,
+volume: parseFloat(pair.volume?.h24 || 0),
+transactions: (pair.txns?.h24?.buys || 0) + (pair.txns?.h24?.sells || 0),
+whaleActivity: totalBuy > 500000000,
+newToken: !detectedTokens.has(contractAddress),
+lpLocked: false,
+volumeGrowth: parseFloat(pair.priceChange?.h1 || 0)
 });
+}
+}
+}catch(e){
+console.error("DexScreener erreur:",e);
+}
+}
+}
 }catch(e){
 console.error("Erreur scan memecoins:",e);
 }
 }
+
+
 
 function displayMemecoin(address){
 const el = document.getElementById("memecoinScanner");
