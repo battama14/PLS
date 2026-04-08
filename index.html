@@ -652,10 +652,10 @@ const BLOCK_LOOKBACK = 5;
 const API_BASE = "/.netlify/functions/api";
 
 // Flux temps reel - buy et sell separes
-let totalBuyVol = 0;  // volume achats whales
-let totalSellVol = 0; // volume ventes whales
-let totalFlow = 0;    // alias pour compatibilite
-let totalVolume = 0;  // alias pour compatibilite
+let totalBuyVol = parseFloat(localStorage.getItem("totalBuyVol") || "0");  // volume achats whales
+let totalSellVol = parseFloat(localStorage.getItem("totalSellVol") || "0"); // volume ventes whales
+let totalFlow = parseFloat(localStorage.getItem("totalFlow") || "0");    // alias pour compatibilite
+let totalVolume = parseFloat(localStorage.getItem("totalVolume") || "0");  // alias pour compatibilite
 
 let plsPrice = 0;
 let derniereAnalyse = 0;
@@ -664,8 +664,8 @@ let activityScore = 0;
 let pumpScore = 0;
 let pumpRadarAlerte = false;
 let earlyPumpAlerte = false;
-let whaleBuysHistory = [];
-let whaleBurst = [];
+let whaleBuysHistory = JSON.parse(localStorage.getItem("whaleBuysHistory") || "[]");
+let whaleBurst = JSON.parse(localStorage.getItem("whaleBurst") || "[]");
 let lastAccumulationAlert = 0;
 let lastBurstAlert = 0;
 
@@ -748,8 +748,8 @@ Possible spéculation sur PulseChain
 async function monitorPLSMarket(){
 try{
 const [resPLS, resPLSX] = await Promise.all([
-fetch("https://api.dexscreener.com/latest/dex/tokens/0xA1077a294dDE1B09bB078844df40758a5D0f9a27"),
-fetch("https://api.dexscreener.com/latest/dex/tokens/0x95B303987A60C71504D99Aa1b13B4DA07b0790ab")
+fetch("/.netlify/functions/dex-proxy?token=0xA1077a294dDE1B09bB078844df40758a5D0f9a27"),
+fetch("/.netlify/functions/dex-proxy?token=0x95B303987A60C71504D99Aa1b13B4DA07b0790ab")
 ]);
 const [dataPLS, dataPLSX] = await Promise.all([resPLS.json(), resPLSX.json()]);
 const pls = dataPLS.pairs[0];
@@ -869,7 +869,7 @@ return await rpc("eth_getBlockByNumber",[hex,true]);
 
 async function getPlsPrice(){
 try{
-const res = await fetch("https://api.dexscreener.com/latest/dex/tokens/0xA1077a294dDE1B09bB078844df40758a5D0f9a27");
+const res = await fetch("/.netlify/functions/dex-proxy?token=0xA1077a294dDE1B09bB078844df40758a5D0f9a27");
 const data = await res.json();
 plsPrice = parseFloat(data.pairs[0].priceUsd);
 console.log("Prix PLS: $"+plsPrice);
@@ -883,7 +883,55 @@ const h = new Date().getHours();
 return h >= 9 && h < 22;
 }
 
-const alertesEnvoyees = new Set();
+// Sauvegarder les données toutes les 10 secondes
+function saveDataToLocalStorage(){
+  try{
+    localStorage.setItem("totalBuyVol", totalBuyVol.toString());
+    localStorage.setItem("totalSellVol", totalSellVol.toString());
+    localStorage.setItem("totalFlow", totalFlow.toString());
+    localStorage.setItem("totalVolume", totalVolume.toString());
+    localStorage.setItem("whaleBuysHistory", JSON.stringify(whaleBuysHistory));
+    localStorage.setItem("whaleBurst", JSON.stringify(whaleBurst));
+    localStorage.setItem("whaleWatchlist", JSON.stringify(whaleWatchlist));
+    localStorage.setItem("smartWhalesData", JSON.stringify(smartWhalesData));
+    localStorage.setItem("smartMoneyWallets", JSON.stringify(smartMoneyWallets));
+    localStorage.setItem("pumpScores", JSON.stringify(pumpScores));
+    localStorage.setItem("lastScannedBlock", lastScannedBlock.toString());
+  }catch(e){
+    console.warn("localStorage plein, nettoyage...");
+    localStorage.clear();
+  }
+}
+
+// Charger les données au démarrage
+function loadDataFromLocalStorage(){
+  try{
+    const saved = localStorage.getItem("totalBuyVol");
+    if(saved){
+      totalBuyVol = parseFloat(saved);
+      totalSellVol = parseFloat(localStorage.getItem("totalSellVol") || "0");
+      totalFlow = parseFloat(localStorage.getItem("totalFlow") || "0");
+      totalVolume = parseFloat(localStorage.getItem("totalVolume") || "0");
+      whaleBuysHistory = JSON.parse(localStorage.getItem("whaleBuysHistory") || "[]");
+      whaleBurst = JSON.parse(localStorage.getItem("whaleBurst") || "[]");
+      whaleWatchlist = JSON.parse(localStorage.getItem("whaleWatchlist") || "{}");
+      smartWhalesData = JSON.parse(localStorage.getItem("smartWhalesData") || "{}");
+      smartMoneyWallets = JSON.parse(localStorage.getItem("smartMoneyWallets") || "{}");
+      pumpScores = JSON.parse(localStorage.getItem("pumpScores") || "{}");
+      lastScannedBlock = parseInt(localStorage.getItem("lastScannedBlock") || "0");
+      console.log("✅ Données restaurées depuis localStorage");
+      console.log(`Buy Vol: ${(totalBuyVol/1e6).toFixed(2)}M | Sell Vol: ${(totalSellVol/1e6).toFixed(2)}M`);
+    }
+  }catch(e){
+    console.error("Erreur chargement localStorage:", e);
+  }
+}
+
+// Sauvegarder toutes les 10 secondes
+setInterval(saveDataToLocalStorage, 10000);
+
+// Charger au démarrage
+loadDataFromLocalStorage();
 const txTraites = new Set(); // deduplication globale toutes fonctions confondues
 const MAX_TX_CACHE = 500;
 function addTxTraite(hash){ if(txTraites.size > MAX_TX_CACHE){ txTraites.clear(); } txTraites.add(hash); }
@@ -947,17 +995,18 @@ if(level === "low") return;
 if(Date.now() - lastTelegramAlert < 120000 && level !== "high") return;
 if(!heureAutorisee() && window.location.hostname !== "localhost") return;
 lastTelegramAlert = Date.now();
-const isLocal = window.location.hostname === "localhost";
-const body = isLocal
-  ? JSON.stringify({chat_id:"5642847995", text:msg})
-  : JSON.stringify({message:msg});
-const res = await fetch(TELEGRAM_BOT,{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:body
-});
-const data = await res.json();
-console.log("Telegram:",data);
+// Envoyer via Netlify Function au lieu du frontend
+try{
+  const res = await fetch("/.netlify/functions/send-alert",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({message:msg, level:level})
+  });
+  const data = await res.json();
+  console.log("Alert envoyée:",data);
+}catch(e){
+  console.error("Erreur envoi alerte:",e);
+}
 addTradingSignal(msg, level);
 }
 
@@ -1383,7 +1432,7 @@ el.prepend(div);
 
 async function analyzeDevSupply(contract, creator){
 try{
-const res = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${contract}`);
+const res = await fetch(`/.netlify/functions/dex-proxy?token=${contract}`);
 const data = await res.json();
 if(!data.pairs || data.pairs.length === 0) return;
 const pair = data.pairs[0];
@@ -2239,7 +2288,7 @@ if(!tx.to){
 if(!tx.creates) continue;
 const contractAddress = tx.creates;
 try{
-const res = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${contractAddress}`);
+const res = await fetch(`/.netlify/functions/dex-proxy?token=${contractAddress}`);
 const data = await res.json();
 const pair = data.pairs && data.pairs[0];
 const liquidity = pair ? parseFloat(pair.liquidity?.usd || 0) : 0;
