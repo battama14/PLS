@@ -1,35 +1,23 @@
 {
-  "last_update": 1775595696,
-  "last_block": 26225718,
-  "data_range": {
-    "from": 1775595696,
-    "to": 1775595696,
-    "from_date": "05/01/2025",
-    "to_date": "05/01/2025"
-  },
+  "last_update": 1775694207,
   "last_whales": [],
   "timeframes": {
     "24h": {
       "timeframe_hours": 24,
-      "generated_at": 1775595696,
+      "generated_at": 1775694207,
       "netflow": {
         "total_flow_pls": 0.0,
-        "buy_pls": 0.0,
-        "sell_pls": 0.0,
-        "netflow_pls": 0.0,
         "tx_count": 0,
         "unique_wallets": 0
       },
       "top_wallets": [],
       "swaps": {
         "count": 0,
-        "buys": 0,
-        "sells": 0,
         "volume_pls": 0.0
       },
       "tokens": {
         "new_pairs": 0,
-        "liquidity_events": 8,
+        "liquidity_events": 0,
         "lp_locks": 0
       },
       "smart_money": [],
@@ -37,29 +25,24 @@
       "liquidity_spikes": [],
       "insider_wallets": [],
       "pump_candidates": [],
-      "pump_score": 20
+      "pump_score": 0
     },
     "7d": {
       "timeframe_hours": 168,
-      "generated_at": 1775595696,
+      "generated_at": 1775694207,
       "netflow": {
         "total_flow_pls": 0.0,
-        "buy_pls": 0.0,
-        "sell_pls": 0.0,
-        "netflow_pls": 0.0,
         "tx_count": 0,
         "unique_wallets": 0
       },
       "top_wallets": [],
       "swaps": {
         "count": 0,
-        "buys": 0,
-        "sells": 0,
         "volume_pls": 0.0
       },
       "tokens": {
         "new_pairs": 0,
-        "liquidity_events": 8,
+        "liquidity_events": 10,
         "lp_locks": 0
       },
       "smart_money": [],
@@ -71,7 +54,7 @@
     }
   },
   "pump_radar": {
-    "score": 20,
+    "score": 0,
     "candidates": [],
     "liquidity_spikes": []
   }
