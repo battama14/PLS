@@ -646,10 +646,19 @@ a:hover{text-decoration:underline;}
 <script>
 
 const RPC = "https://rpc.pulsechain.com";
-const WHALE_THRESHOLD = 200000000; // ~$1500 USD au prix actuel PLS
-const BLOCK_LOOKBACK = 5;
-// Plus de token Telegram dans le frontend — les alertes passent par l'indexeur local
+const WHALE_THRESHOLD_USD = 1500; // Seuil en USD, converti dynamiquement
+const BLOCK_LOOKBACK = 80; // ~13 minutes d'historique pour meilleure détection
 const API_BASE = "/.netlify/functions/api";
+
+// Wallets factices à ignorer
+const FAKE_WALLETS = new Set([
+  "0x1234567890abcdef1234567890abcdef12345678",
+  "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd",
+  "0x9876543210fedcba9876543210fedcba98765432",
+  "0xinsider1234567890abcdef1234567890abcde",
+  "0xtoken1234567890abcdef1234567890abcdef12",
+  "0xtoken9876543210fedcba9876543210fedcba98"
+]);
 
 // Flux temps reel - buy et sell separes
 let totalBuyVol = parseFloat(localStorage.getItem("totalBuyVol") || "0");  // volume achats whales
@@ -666,6 +675,10 @@ let pumpRadarAlerte = false;
 let earlyPumpAlerte = false;
 let whaleBuysHistory = JSON.parse(localStorage.getItem("whaleBuysHistory") || "[]");
 let whaleBurst = JSON.parse(localStorage.getItem("whaleBurst") || "[]");
+let whaleWatchlist = {};
+let smartWhalesData = {};
+let smartMoneyWallets = {};
+let pumpScores = {};
 let lastAccumulationAlert = 0;
 let lastBurstAlert = 0;
 
@@ -831,7 +844,7 @@ function computeWhaleSentiment(buys, sells){
 function computeWhaleFlow(whales){
   let buys = 0, sells = 0;
   for(const w of whales){
-    if(w.type === "buy" || w.type === "transfer") buys += (w.amount_pls||0);
+    if(w.type === "buy") buys += (w.amount_pls||0);
     else if(w.type === "sell") sells += (w.amount_pls||0);
   }
   return { buys, sells, net: buys - sells };
@@ -841,7 +854,7 @@ function computeWhaleFlow(whales){
 function computePumpScore(metrics){
   let score = 0;
   if(metrics.whaleBuy > metrics.whaleSell) score += 30;
-  if(metrics.newTokens > 10) score += 20;
+  if(metrics.newTokens > 3) score += 20;
   if(metrics.swapVolume > 100000000) score += 30;
   if(metrics.liquidityIncrease) score += 20;
   return Math.min(score, 100);
@@ -886,6 +899,16 @@ return h >= 9 && h < 22;
 // Sauvegarder les données toutes les 10 secondes
 function saveDataToLocalStorage(){
   try{
+    if(whaleBuysHistory.length > 500) whaleBuysHistory = whaleBuysHistory.slice(-500);
+    if(whaleBurst.length > 500) whaleBurst = whaleBurst.slice(-500);
+    if(Object.keys(whaleWatchlist).length > 100){
+      const sorted = Object.entries(whaleWatchlist).sort((a,b)=>b[1].lastActivity-a[1].lastActivity);
+      whaleWatchlist = Object.fromEntries(sorted.slice(0,100));
+    }
+    if(Object.keys(smartWhalesData).length > 100){
+      const sorted = Object.entries(smartWhalesData).sort((a,b)=>b[1].activity-a[1].activity);
+      smartWhalesData = Object.fromEntries(sorted.slice(0,100));
+    }
     localStorage.setItem("totalBuyVol", totalBuyVol.toString());
     localStorage.setItem("totalSellVol", totalSellVol.toString());
     localStorage.setItem("totalFlow", totalFlow.toString());
@@ -898,8 +921,9 @@ function saveDataToLocalStorage(){
     localStorage.setItem("pumpScores", JSON.stringify(pumpScores));
     localStorage.setItem("lastScannedBlock", lastScannedBlock.toString());
   }catch(e){
-    console.warn("localStorage plein, nettoyage...");
-    localStorage.clear();
+    console.warn("localStorage plein, nettoyage des anciennes données...");
+    whaleBuysHistory = whaleBuysHistory.slice(-100);
+    whaleBurst = whaleBurst.slice(-100);
   }
 }
 
@@ -945,7 +969,6 @@ let lastBurnBlock = 0;
 let burnHistory = [];
 let burnDayTotal = parseFloat(localStorage.getItem('burnDayTotal') || '0');
 let burnDayDate = localStorage.getItem('burnDayDate') || '';
-let lastScannedBlock = 0;
 const burnSpikeAlerte = new Set();
 
 function peutEnvoyerAlerte(txHash){
@@ -992,7 +1015,7 @@ console.error("Analyse erreur:",e);
 
 async function sendTelegram(msg, level="medium"){
 if(level === "low") return;
-if(Date.now() - lastTelegramAlert < 120000 && level !== "high") return;
+if(level !== "high" && Date.now() - lastTelegramAlert < 120000) return;
 if(!heureAutorisee() && window.location.hostname !== "localhost") return;
 lastTelegramAlert = Date.now();
 // Envoyer via Netlify Function au lieu du frontend
@@ -1120,17 +1143,19 @@ signal="🟡 Marché Neutre";
 explication="Volume buy/sell équilibré sur PulseX.";
 }
 document.getElementById("pumpSignal").innerHTML=`<strong>${signal}</strong><br><small style='color:#94a3b8'>${explication}</small>`;
+
+// Mettre à jour le sentiment
+updateSentiment();
 }
 
 
 const PULSEX_ROUTER = "0x98bf93ebf5c380C0e6Ae8e192A7e2AE08edAcc02";
 const PULSEX_FACTORY = "0x1715a3E4A142d8b698131108995174F37aEBA10D";
 const CREATE_PAIR_METHOD = "0xc9c65396";
-const SWAP_METHODS = ["0x38ed1739","0x7ff36ab5","0x18cbafe5"];
+const SWAP_METHODS = ["0x38ed1739","0x7ff36ab5","0x18cbafe5","0x5c11d795"];
 const ADD_LIQUIDITY_METHOD = "0xe8e33700";
 
 const createPairDetectes = new Set();
-let smartMoneyWallets = {};
 let devWallets = {};
 let insiderWallets = {};
 let liquidityLocks = {};
@@ -1138,7 +1163,6 @@ let devSupplyData = {};
 let liquidityEvents = {};
 let liquidityHistory = {};
 let preSpikeWhales = {};
-let pumpScores = {};
 let createPairDetected = {};
 let liquidityAdded = {};
 let lpLockedContracts = {};
@@ -1302,7 +1326,9 @@ el.appendChild(div);
 }
 
 function trackWhaleBeforeSpike(tx, value, contract){
-if(!contract || value < WHALE_THRESHOLD) return;
+if(!contract) return;
+const valueUsd = value * plsPrice;
+if(valueUsd < WHALE_THRESHOLD_USD) return;
 if(!preSpikeWhales[contract]) preSpikeWhales[contract] = [];
 preSpikeWhales[contract].push({wallet:tx.from, time:Date.now(), value:value});
 }
@@ -1391,7 +1417,8 @@ liquidityEvents[wallet] = {time:Date.now(), whales:[]};
 }
 
 function trackEarlyWhales(tx,value){
-if(value < WHALE_THRESHOLD) return;
+const valueUsd = value * plsPrice;
+if(valueUsd < WHALE_THRESHOLD_USD) return;
 const wallet = tx.from;
 Object.keys(liquidityEvents).forEach(dev=>{
 const event = liquidityEvents[dev];
@@ -1538,8 +1565,10 @@ el.appendChild(div);
 }
 
 function trackSmartMoney(tx,value){
-if(value < WHALE_THRESHOLD) return;
-const wallet = tx.from;
+const valueUsd = value * plsPrice;
+if(valueUsd < WHALE_THRESHOLD_USD) return;
+const wallet = tx.from.toLowerCase();
+if(FAKE_WALLETS.has(wallet)) return;
 if(!smartMoneyWallets[wallet]){
 smartMoneyWallets[wallet]={volume:0,predictions:0,lastSeen:Date.now()};
 }
@@ -1649,8 +1678,9 @@ else{ type="buy"; amount=swap.amount1In||swap.amount0Out; }
 }
 
 const valueEth = amount / 1e18;
+const valueUsd = valueEth * plsPrice;
 // Filtre: ignorer les valeurs aberrantes (> 100B PLS = probablement mauvais decode)
-if(valueEth < WHALE_THRESHOLD || valueEth > 100000000000) continue;
+if(valueUsd < WHALE_THRESHOLD_USD || valueEth > 100000000000) continue;
 
 // Afficher dans whale activity
 const whalesEl = document.getElementById("whales");
@@ -1691,29 +1721,28 @@ updateWhaleSentiment();
 const whaleHeatmapData = [];
 const walletAccumTracker = {};
 
-function updateWhaleSentiment(){
-// Source fiable : uniquement les vrais swaps PulseX (totalBuyVol / totalSellVol)
-const buyVol  = totalBuyVol;
-const sellVol = totalSellVol;
-const total   = buyVol + sellVol;
-
-if(total === 0){
-  document.getElementById("sentimentScore").innerHTML = `<span style="color:#64748b">--/100</span>`;
-  document.getElementById("sentimentLabel").innerHTML = `<span style="color:#64748b">En attente de swaps whales...</span>`;
-  document.getElementById("sentimentDetail").innerHTML = `Données basées sur les swaps PulseX > ${(WHALE_THRESHOLD/1e6).toFixed(0)}M PLS`;
-  return;
-}
-
-const score = computeWhaleSentiment(buyVol, sellVol);
-let label, color;
-if(score > 65){ label="🟢 Accumulation"; color="#22c55e"; }
-else if(score > 50){ label="🟡 Légèrement haussier"; color="#eab308"; }
-else if(score > 35){ label="🟡 Légèrement baissier"; color="#f97316"; }
-else{ label="🔴 Distribution"; color="#ef4444"; }
-
-document.getElementById("sentimentScore").innerHTML=`<span style="color:${color}">${score}/100</span>`;
-document.getElementById("sentimentLabel").innerHTML=`<strong style="color:${color}">${label}</strong>`;
-document.getElementById("sentimentDetail").innerHTML=`BUY : ${Math.round(buyVol/1000000)}M PLS | SELL : ${Math.round(sellVol/1000000)}M PLS`;
+function updateSentiment(){
+  const sentiment = computeWhaleSentiment(totalBuyVol, totalSellVol);
+  const total = totalBuyVol + totalSellVol;
+  
+  if(total === 0){
+    document.getElementById("sentimentScore").innerHTML = `<span style="color:#64748b">--/100</span>`;
+    document.getElementById("sentimentLabel").innerHTML = `<span style="color:#64748b">En attente de swaps...</span>`;
+    document.getElementById("sentimentDetail").innerHTML = `Données basées sur les swaps PulseX > $${WHALE_THRESHOLD_USD}`;
+    return;
+  }
+  
+  const label =
+    sentiment > 60 ? "🟢 Accumulation whales" :
+    sentiment < 40 ? "🔴 Distribution whales" :
+    "🟡 Marché équilibré";
+  
+  const color = sentiment > 60 ? "#22c55e" : sentiment < 40 ? "#ef4444" : "#eab308";
+  const pressure = Math.round((totalBuyVol / total) * 100);
+  
+  document.getElementById("sentimentScore").innerHTML = `<span style="color:${color}">${sentiment}/100</span>`;
+  document.getElementById("sentimentLabel").innerHTML = `<strong style="color:${color}">${label}</strong>`;
+  document.getElementById("sentimentDetail").innerHTML = `BUY : ${Math.round(totalBuyVol/1000000)}M PLS | SELL : ${Math.round(totalSellVol/1000000)}M PLS<br><span style="color:${color};font-weight:bold">Whale Pressure : ${pressure}%</span>`;
 }
 
 
@@ -1959,7 +1988,8 @@ trackEarlyWhales(tx, parseInt(tx.value,16)/1e18);
 if(tx.input !== "0x") continue;
 if(!tx.from || !tx.to) continue;
 const value = parseInt(tx.value,16)/1e18;
-if(value < WHALE_THRESHOLD) continue;
+const valueUsd = value * plsPrice;
+if(valueUsd < WHALE_THRESHOLD_USD) continue;
 if(whaleWallets[tx.from] && whaleWallets[tx.from].transactions > 30) continue;
 
 found++;
@@ -2048,11 +2078,10 @@ document.getElementById("whales").innerHTML="<div style='color:#ef4444'>Erreur R
 }
 
 monitorPLSMarket();
-
-monitorPLSMarket();
+monitorPLSBurn();
 setTimeout(monitorPLSBurn, 3000); // delai pour eviter conflit RPC
 setInterval(monitorPLSMarket, 60000);
-setInterval(monitorPLSBurn, 30000);
+setInterval(monitorPLSBurn, 15000);
 setInterval(getPlsPrice, 5*60*1000);
 setInterval(analyserTendance, 60*60*1000);
 setInterval(calculatePumpScore, 30000);
@@ -2106,21 +2135,24 @@ Volume : ${volumeStatus}
 el.prepend(div);
 }
 
-let whaleWatchlist = {};
+
 
 function updateWhaleWatchlist(tx,value){
-if(value < WHALE_THRESHOLD) return;
+const valueUsd = value * plsPrice;
+if(valueUsd < WHALE_THRESHOLD_USD) return;
+const walletAddr = tx.from.toLowerCase();
+if(FAKE_WALLETS.has(walletAddr)) return;
+if(!whaleWatchlist) whaleWatchlist = {};
 if(Object.keys(whaleWatchlist).length > 100){
 const oldest = Object.entries(whaleWatchlist).sort((a,b)=>a[1].lastActivity-b[1].lastActivity)[0][0];
 delete whaleWatchlist[oldest];
 }
-const wallet = tx.from;
-if(!whaleWatchlist[wallet]){
-whaleWatchlist[wallet]={volume:0,transactions:0,lastActivity:Date.now()};
+if(!whaleWatchlist[walletAddr]){
+whaleWatchlist[walletAddr]={volume:0,transactions:0,lastActivity:Date.now()};
 }
-whaleWatchlist[wallet].volume += value;
-whaleWatchlist[wallet].transactions += 1;
-whaleWatchlist[wallet].lastActivity = Date.now();
+whaleWatchlist[walletAddr].volume += value;
+whaleWatchlist[walletAddr].transactions += 1;
+whaleWatchlist[walletAddr].lastActivity = Date.now();
 displayWhaleWatchlist();
 }
 
@@ -2142,11 +2174,11 @@ el.appendChild(div);
 });
 }
 
-let smartWhalesData = {};
-
 function detectSmartWhales(tx,value,type){
-if(value < WHALE_THRESHOLD) return;
-const wallet = tx.from;
+const valueUsd = value * plsPrice;
+if(valueUsd < WHALE_THRESHOLD_USD) return;
+const wallet = tx.from.toLowerCase();
+if(FAKE_WALLETS.has(wallet)) return;
 if(Object.keys(smartWhalesData).length > 100){
 const oldest = Object.entries(smartWhalesData).sort((a,b)=>a[1].activity-b[1].activity)[0][0];
 delete smartWhalesData[oldest];
@@ -2178,11 +2210,11 @@ el.appendChild(div);
 });
 }
 
-let whaleWallets = {};
-
 function trackSmartWhales(tx,value){
-if(value < WHALE_THRESHOLD) return;
-const wallet = tx.from;
+const valueUsd = value * plsPrice;
+if(valueUsd < WHALE_THRESHOLD_USD) return;
+const wallet = tx.from.toLowerCase();
+if(FAKE_WALLETS.has(wallet)) return;
 if(!whaleWallets[wallet]){
 whaleWallets[wallet]={volume:0,transactions:0};
 }
@@ -2443,6 +2475,10 @@ function injectHistoricalWallets(){
     if(el && el.innerHTML === 'Scanning blockchain...') el.innerHTML = '';
     tf.top_wallets.slice(0,5).forEach(w=>{
       if(!w.wallet) return;
+      if(FAKE_WALLETS.has(w.wallet.toLowerCase())) return;
+      const volumePLS = (w.volume_pls || 0) * 1000000; // Convertir millions en PLS
+      const valueUsd = volumePLS * plsPrice;
+      if(valueUsd < WHALE_THRESHOLD_USD) return; // Filtrer les petits wallets
       const div = document.createElement('div');
       div.className = 'whale-entry';
       div.innerHTML = `🐋 <span style="color:#94a3b8;font-size:11px">HISTORIQUE</span><br>
@@ -2458,6 +2494,10 @@ Volume : <span class="buy">${(w.volume_pls||0).toLocaleString()}M PLS</span> | $
     if(el && el.innerHTML === 'Scanning blockchain...') el.innerHTML = '';
     tf.smart_money.slice(0,5).forEach(w=>{
       if(!w.wallet) return;
+      if(FAKE_WALLETS.has(w.wallet.toLowerCase())) return;
+      const volumePLS = (w.volume_pls || 0) * 1000000; // Convertir millions en PLS
+      const valueUsd = volumePLS * plsPrice;
+      if(valueUsd < WHALE_THRESHOLD_USD) return; // Filtrer les petits wallets
       const walletTxs = (siteData.last_whales||[]).filter(wh=>wh.wallet===w.wallet);
       const lastSeen  = walletTxs.length > 0 && walletTxs[0].timestamp
         ? new Date(walletTxs[0].timestamp*1000).toLocaleDateString("fr-FR")
@@ -2484,6 +2524,10 @@ Solde net : <span style="color:${soldeColor};font-weight:bold">${solde>=0?"+":""
     if(el && el.innerHTML === 'Chargement...') el.innerHTML = '';
     siteData.last_whales.slice(0,10).forEach(w=>{
       if(!w.wallet) return;
+      if(FAKE_WALLETS.has(w.wallet.toLowerCase())) return;
+      const amountPLS = (w.amount_pls || 0) * 1000000; // Convertir millions en PLS
+      const valueUsd = amountPLS * plsPrice;
+      if(valueUsd < WHALE_THRESHOLD_USD) return; // Filtrer les petits wallets
       const div = document.createElement('div');
       div.className = 'whale-entry';
       const color = w.type === 'buy' ? '#22c55e' : '#ef4444';
